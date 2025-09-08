@@ -3,7 +3,7 @@
 ## Overview
 ZeroHungry Animal is a comprehensive platform for animal welfare that focuses on dog rescue, adoption, and donation tracking. The platform includes both user and admin interfaces to manage rescued dogs, track adoptions, and monitor donations.
 
-![Platform Preview](git/msedge_5cq2EH6mAq.gif)
+![Platform Preview](git/image.png)
 
 ## Features
 - 🐕 Dog Rescue Management
