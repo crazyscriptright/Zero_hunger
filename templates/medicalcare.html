@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Care for Stray Dogs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Fade-in animation */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 1s ease-out forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body class="bg-white text-gray-900">
+
+    <!-- Container -->
+    <div class="container mx-auto px-6 py-12">
+
+        <!-- Header Section -->
+        <h1 class="text-5xl font-extrabold text-center text-gray-600 mb-6 fade-in">Medical Care for Stray Dogs</h1>
+
+        <!-- Image Section -->
+        <div class="flex justify-center">
+            <img src="/static/medical.avif" alt="Veterinary Care" 
+                class="w-full max-w-lg h-auto sm:h-[400px] object-cover rounded-xl shadow-xl transition-transform transform hover:scale-105 fade-in">
+        </div>
+
+        <!-- Introduction Text -->
+        <p class="text-lg text-gray-700 leading-relaxed text-center mt-6 fade-in px-4">
+            We provide essential <strong>medical care</strong> for stray dogs, including <strong>vaccinations, sterilization, emergency treatment, and regular health checkups</strong>. 
+            Our team of veterinarians and volunteers work tirelessly to ensure that every street dog receives the care they need.
+        </p>
+
+        <!-- Medical Services Section -->
+        <div class="mt-10 fade-in">
+            <h2 class="text-3xl font-semibold text-center text-blue-600 mb-4">Our Medical Services</h2>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="p-4 bg-gray-100 rounded-lg shadow-md hover:bg-gray-200 transition duration-300">
+                    <h3 class="text-xl font-semibold text-gray-600">Vaccination</h3>
+                    <p class="text-gray-700">Protecting dogs from deadly diseases like rabies and parvovirus.</p>
+                </div>
+                <div class="p-4 bg-gray-100 rounded-lg shadow-md hover:bg-gray-200 transition duration-300">
+                    <h3 class="text-xl font-semibold text-gray-600">Sterilization</h3>
+                    <p class="text-gray-700">Controlling stray dog overpopulation through neutering/spaying programs.</p>
+                </div>
+                <div class="p-4 bg-gray-100 rounded-lg shadow-md hover:bg-gray-200 transition duration-300">
+                    <h3 class="text-xl font-semibold text-gray-600">Emergency Treatment</h3>
+                    <p class="text-gray-700">Providing immediate care for injured or sick stray dogs.</p>
+                </div>
+                <div class="p-4 bg-gray-100 rounded-lg shadow-md hover:bg-gray-200 transition duration-300">
+                    <h3 class="text-xl font-semibold text-gray-600">Deworming & Parasite Control</h3>
+                    <p class="text-gray-700">Treating stray dogs for ticks, fleas, and internal parasites.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- External Resources -->
+        <div class="mt-12 fade-in">
+            <h2 class="text-3xl font-semibold text-center text-yellow-600 mb-6">Useful Medical Resources for Dogs</h2>
+            <div class="grid md:grid-cols-2 gap-6 text-center">
+                <a href="https://www.aspca.org/pet-care/dog-care" 
+                    class="block px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold rounded-lg shadow-md transition-transform transform hover:scale-105" 
+                    target="_blank">ASPCA - Dog Care & Health</a>
+
+                <a href="https://www.avma.org/resources/pet-owners/petcare/dog-care" 
+                    class="block px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold rounded-lg shadow-md transition-transform transform hover:scale-105" 
+                    target="_blank">American Veterinary Medical Association - Dog Care</a>
+
+                <a href="https://www.who.int/health-topics/rabies" 
+                    class="block px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold rounded-lg shadow-md transition-transform transform hover:scale-105" 
+                    target="_blank">WHO - Rabies & Dog Vaccination</a>
+
+                <a href="https://www.humanesociety.org/resources/how-help-stray-and-feral-cats-and-dogs" 
+                    class="block px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold rounded-lg shadow-md transition-transform transform hover:scale-105" 
+                    target="_blank">Humane Society - Helping Stray Animals</a>
+            </div>
+        </div>
+
+
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>User Profile</title>
+</head>
+<body class="bg-gray-100">
+
+    <!-- Header -->
+    <header class="header text-gray-600 body-font w-full bg-indigo-600 text-white p-4 shadow-md">
+        <div class="container mx-auto flex flex-wrap p-5 flex-col md:flex-row items-center">
+            <a href="index.html" class="text-xl font-bold">Zero Hunger</a>
+            <nav class="md:ml-auto flex flex-wrap items-center text-base justify-center">
+                <a class="mr-5 text-white hover:text-blue-200 transition duration-300" href="index.html">Home</a>
+                <a class="mr-5 text-white hover:text-blue-200 transition duration-300" href="profile.html">Profile</a>
+                <a class="mr-5 text-white hover:text-blue-200 transition duration-300" href="donate.html">Donate</a>
+                <a class="mr-5 text-white hover:text-blue-200 transition duration-300" href="logout.html">Logout</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Profile Section -->
+    <div class="container mx-auto mt-12 p-5">
+        <div class="max-w-lg mx-auto bg-white shadow-lg rounded-lg p-6">
+            <h2 class="text-2xl font-bold text-center mb-4">User Profile</h2>
+            
+            <!-- Profile Information -->
+            <div class="flex flex-col items-center">
+                <img class="w-24 h-24 rounded-full mb-4 border-4 border-indigo-500" src="https://via.placeholder.com/100" alt="User Avatar">
+                <h3 class="text-lg font-semibold">John Doe</h3>
+                <p class="text-gray-600">johndoe@example.com</p>
+                <p class="text-gray-600">+1 234 567 890</p>
+            </div>
+
+            <!-- Settings & Logout -->
+            <div class="mt-6 space-y-4">
+                <a href="settings.html" class="block text-center bg-blue-500 py-2 px-6 rounded-lg text-white hover:bg-blue-600 transition duration-300">
+                    Settings
+                </a>
+                <a href="logout.html" class="block text-center bg-red-500 py-2 px-6 rounded-lg text-white hover:bg-red-600 transition duration-300">
+                    Logout
+                </a>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

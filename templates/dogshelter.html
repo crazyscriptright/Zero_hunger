@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support for Dog Shelters</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Smooth fade-in animation */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 1s ease-out forwards;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body class="bg-white text-gray-900">
+
+    <div class="container mx-auto px-6 py-12">
+        <!-- Header Section -->
+        <h1 class="text-5xl font-bold text-center text-gray-600 mb-6 fade-in">Support for Dog Shelters</h1>
+        
+        <!-- Image Section -->
+        <div class="flex justify-center fade-in">
+            <img src="/static/image7.jpg" alt="Animal Shelter" 
+                class="w-full max-w-2xl h-80 object-cover rounded-lg shadow-lg transition-transform transform hover:scale-105">
+        </div>
+        
+        <!-- Introduction Text -->
+        <p class="text-lg text-gray-700 text-center mt-6 fade-in max-w-3xl mx-auto">
+            Our mission is to <span class="text-gray-600 font-semibold">support dog shelters</span> by providing
+            <span class="text-gray-600 font-semibold">food, medical care, and adoption assistance.</span>
+            Every dog deserves a safe and loving home. Join us in making a difference!
+        </p>
+        
+        <!-- How You Can Help -->
+        <div class="mt-10 fade-in">
+            <h2 class="text-3xl font-semibold text-center text-gray-500 mb-6">How You Can Help</h2>
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="p-6 bg-gray-100 rounded-lg shadow-lg hover:bg-gray-200 transition duration-300 text-center">
+                    <h3 class="text-xl font-semibold text-blue-600">Donate Supplies</h3>
+                    <p class="text-gray-700">Provide food, blankets, and medical supplies to support shelter dogs.</p>
+                </div>
+                <div class="p-6 bg-gray-100 rounded-lg shadow-lg hover:bg-gray-200 transition duration-300 text-center">
+                    <h3 class="text-xl font-semibold text-blue-600">Volunteer at Shelters</h3>
+                    <p class="text-gray-700">Help shelters by feeding, walking, and caring for stray dogs.</p>
+                </div>
+                <div class="p-6 bg-gray-100 rounded-lg shadow-lg hover:bg-gray-200 transition duration-300 text-center">
+                    <h3 class="text-xl font-semibold text-blue-600">Foster a Dog</h3>
+                    <p class="text-gray-700">Give temporary homes to dogs in need until they find permanent families.</p>
+                </div>
+                <div class="p-6 bg-gray-100 rounded-lg shadow-lg hover:bg-gray-200 transition duration-300 text-center">
+                    <h3 class="text-xl font-semibold text-blue-600">Spread Awareness</h3>
+                    <p class="text-gray-700">Share shelter stories and encourage responsible pet adoption.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- External Resources -->
+        <div class="mt-12 fade-in">
+            <h2 class="text-3xl font-semibold text-center text-blue-500 mb-6">Resources for Dog Shelters</h2>
+            <div class="grid md:grid-cols-2 gap-6 text-center">
+                <a href="https://www.aspca.org/animal-homelessness/shelter-intake-and-surrender" 
+                    class="block px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold rounded-lg shadow-md transition hover:scale-105" 
+                    target="_blank">ASPCA - Shelter Intake & Surrender</a>
+                <a href="https://www.humanesociety.org/resources/how-start-animal-rescue" 
+                    class="block px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold rounded-lg shadow-md transition hover:scale-105" 
+                    target="_blank">Humane Society - Start an Animal Rescue</a>
+                <a href="https://www.avma.org/resources-tools/animal-welfare/animal-shelters-and-rescues" 
+                    class="block px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold rounded-lg shadow-md transition hover:scale-105" 
+                    target="_blank">AVMA - Animal Shelters & Rescues</a>
+                <a href="https://bestfriends.org/resources/no-kill-shelter-strategies" 
+                    class="block px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold rounded-lg shadow-md transition hover:scale-105" 
+                    target="_blank">Best Friends - No-Kill Shelter Strategies</a>
+            </div>
+        </div>
+
+        <!-- Donate & Volunteer CTA -->
+        <div class="flex flex-col md:flex-row justify-center mt-10 gap-4 fade-in">
+            <a id="donateButton" href="/donate" 
+                class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white text-lg font-semibold rounded-lg shadow-lg transition hover:scale-110">
+                Donate Now
+            </a>
+        </div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById("donateButton").addEventListener("click", function (event) {
+                const storedUsername = sessionStorage.getItem("username");
+                if (!storedUsername) {
+                    event.preventDefault();
+                    window.location.href = "/login";
+                }
+            });
+        });
+    </script>
+</body>
+</html>

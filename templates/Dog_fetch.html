@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stray Dogs Available for Adoption</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8 py-4 ">
+    <div class="container mx-auto p-6 py-20 ">
+        <h1 class="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8 py-4">🐶 Stray Dogs Available for Adoption 🐾</h1>
+
+        <!-- Swiper Section -->
+        <div class="swiper mySwiper relative" id="swiperContainer">
+            <div id="dogsContainer" class="swiper-wrapper"></div>
+        </div>
+
+        <!-- View All Button -->
+        <div class="flex justify-end mt-6 sm:mt-8">
+            <button onclick="handleViewAllClick()" class="bg-gray-600 text-white px-4 sm:px-6 py-2 rounded-lg hover:bg-blue-700 hover:scale-105 transition-all duration-300">View All</button>
+        </div>
+    </div>
+
+    <!-- Modal for Adoption -->
+    <div id="adoptionModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
+        <div class="bg-white p-4 sm:p-6 rounded-lg w-11/12 sm:w-96">
+            <h2 class="text-xl sm:text-2xl font-semibold text-gray-800 mb-4">🐶 Adopt Dog</h2>
+            <input type="email" id="adoptionEmailInput" placeholder="Enter your email" class="w-full p-2 mb-4 border rounded-lg focus:outline-none" />
+            <input type="text" id="fullNameInput" placeholder="Enter your full name" class="w-full p-2 mb-4 border rounded-lg focus:outline-none" />
+            <input type="text" id="phoneNumberInput" placeholder="Enter your phone number" class="w-full p-2 mb-4 border rounded-lg focus:outline-none" />
+            <textarea id="addressInput" placeholder="Enter your address" class="w-full p-2 mb-4 border rounded-lg focus:outline-none"></textarea>
+            <label class="flex items-center mb-4">
+                <input type="checkbox" id="agreementInput" class="mr-2">
+                <span>I accept the adoption agreement</span>
+            </label>
+            <button onclick="confirmAdoption()" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">
+                Confirm Adoption
+            </button>
+            <button onclick="closeAdoptionModal()" class="mt-4 text-gray-500">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Swiper CSS CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+
+    <!-- Swiper JS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+    <style>
+        /* When modal opens, blur all other slides */
+        .blurred {
+            filter: blur(4px);
+            pointer-events: none;
+        }
+
+        .active-slide {
+            filter: none;
+            z-index: 50;
+        }
+    </style>
+
+    <script>
+        let selectedDogId = null; // Store the selected Dog ID
+
+        async function fetchDogs() {
+            try {
+                const response = await fetch("/dogs-10"); // Fetch last 10 dogs
+                const data = await response.json();
+
+                const container = document.getElementById("dogsContainer");
+                container.innerHTML = "";
+
+                data.dogs.forEach(dog => {
+                    const imageSrc = dog.image || 'https://via.placeholder.com/150';
+
+                    const dogCard = `
+                        <div class="swiper-slide bg-white shadow-md rounded-lg p-4 text-center cursor-pointer hover:scale-105 transition-all duration-300" id="dog-${dog.id}">
+                            <div class="relative w-full h-40 overflow-hidden rounded-t-lg">
+                                <img src="${imageSrc}" class="w-full h-full object-cover hover:scale-110 transition-all duration-300" />
+                            </div>
+                            <h2 class="text-lg font-semibold mt-4">${dog.name_of_dog}</h2>
+                            <p class="text-gray-600 mb-4">${dog.sex} | ${dog.age} years</p>
+                            <button onclick="handleAdoptNowClick(${dog.id})" class="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700">Adopt Now</button>
+                        </div>
+                    `;
+                    container.innerHTML += dogCard;
+                });
+
+                // Initialize Swiper with Responsive Breakpoints
+                new Swiper('.mySwiper', {
+                    slidesPerView: 1,
+                    spaceBetween: 20,
+                    loop: true,
+                    autoplay: {
+                        delay: 3000,
+                        disableOnInteraction: false,
+                    },
+                    breakpoints: {
+                        640: {
+                            slidesPerView: 2,
+                        },
+                        768: {
+                            slidesPerView: 3,
+                        },
+                        1024: {
+                            slidesPerView: 4,
+                        },
+                    },
+                });
+
+            } catch (error) {
+                console.error("Error fetching dog details:", error);
+            }
+        }
+
+        // Handle Adopt Now Click
+        function handleAdoptNowClick(dogId) {
+            const storedUsername = sessionStorage.getItem("username");
+            if (!storedUsername) {
+                window.location.href = "/login";
+            } else {
+                openAdoptionModal(dogId);
+            }
+        }
+
+        // Handle View All Click
+        function handleViewAllClick() {
+            const storedUsername = sessionStorage.getItem("username");
+            if (!storedUsername) {
+                window.location.href = "/login";
+            } else {
+                window.location.href = "/all-dogs";
+            }
+        }
+
+        // Open Adoption Modal and Highlight Only Selected Dog
+        function openAdoptionModal(dogId) {
+            selectedDogId = dogId;
+
+            // Add blur effect to all slides except the selected one
+            document.querySelectorAll('.swiper-slide').forEach(slide => {
+                if (!slide.id.includes(dogId)) {
+                    slide.classList.add('blurred');
+                } else {
+                    slide.classList.add('active-slide');
+                }
+            });
+
+            document.getElementById("adoptionModal").classList.remove("hidden");
+        }
+
+        // Close Adoption Modal and Remove Blur Effect
+        function closeAdoptionModal() {
+            selectedDogId = null;
+
+            // Remove blur from all slides
+            document.querySelectorAll('.swiper-slide').forEach(slide => {
+                slide.classList.remove('blurred', 'active-slide');
+            });
+
+            document.getElementById("adoptionModal").classList.add("hidden");
+        }
+
+        // Confirm Adoption
+        async function confirmAdoption() {
+            const email = document.getElementById("adoptionEmailInput").value;
+            const fullName = document.getElementById("fullNameInput").value;
+            const phoneNumber = document.getElementById("phoneNumberInput").value;
+            const address = document.getElementById("addressInput").value;
+            const agreementAccepted = document.getElementById("agreementInput").checked;
+
+            if (!email || !fullName || !phoneNumber || !address || !agreementAccepted) {
+                alert("Please fill in all fields and accept the agreement.");
+                return;
+            }
+
+            const response = await fetch(`/adopt-dog/${selectedDogId}?email=${email}&owner_full_name=${fullName}&phone_number=${phoneNumber}&address=${address}&agreement_accepted=${agreementAccepted}`, {
+                method: "POST",
+            });
+
+            const data = await response.json();
+            alert(data.message);
+            closeAdoptionModal();
+            fetchDogs(); // Refresh Dogs List
+        }
+
+        fetchDogs();
+    </script>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<div class="container mx-auto p-6">
+    <h1 class="text-2xl font-bold mb-4">User Feedback</h1>
+
+    <!-- Search, Sort Controls -->
+    <div class="flex flex-col md:flex-row gap-4 mb-4">
+        <input type="text" id="searchFeedback" placeholder="Search by name or email" 
+            class="p-2 border rounded w-full md:w-1/3">
+        <select id="sortFeedback" class="p-2 border rounded w-full md:w-1/4">
+            <option value="id">Sort by ID</option>
+            <option value="name">Sort by Name</option>
+            <option value="created_at">Sort by Date</option>
+        </select>
+    </div>
+
+    <!-- Table with Scrollbar -->
+    <div class="overflow-x-auto bg-white shadow-md rounded-lg">
+        <table class="min-w-full w-full border-collapse">
+            <thead class="bg-gray-200">
+                <tr>
+                    <th class="py-2 px-4 text-left whitespace-nowrap">ID</th>
+                    <th class="py-2 px-4 text-left whitespace-nowrap">Name</th>
+                    <th class="py-2 px-4 text-left whitespace-nowrap">Email</th>
+                    <th class="py-2 px-4 text-left whitespace-nowrap">Message</th>
+                    <th class="py-2 px-4 text-left whitespace-nowrap">Date</th>
+                </tr>
+            </thead>
+            <tbody id="feedback-table"></tbody>
+        </table>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div class="mt-4 flex justify-between items-center">
+        <button id="prevPageFeedback" class="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50" disabled>Previous</button>
+        <span id="pageIndicatorFeedback" class="text-lg font-semibold">Page 1</span>
+        <button id="nextPageFeedback" class="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50">Next</button>
+    </div>
+</div>
+
+<!-- Modal for Full Message -->
+<div id="messageModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-96 relative">
+        <button id="closeModal" class="absolute top-2 right-2 text-gray-600 hover:text-black text-lg">&times;</button>
+        <h2 class="text-xl font-bold mb-2">Full Message</h2>
+        <p id="fullMessage" class="text-gray-800"></p>
+    </div>
+</div>
+
+<script>
+    let feedbacks = [];
+    let filteredFeedbacks = [];
+    let currentPageFeedback = 1;
+    const rowsPerPageFeedback = 5;
+
+    async function fetchFeedback() {
+        try {
+            const response = await fetch("/viewFeedback");
+            const data = await response.json();
+            feedbacks = data.feedbacks;
+            filteredFeedbacks = [...feedbacks]; // Keep a copy of original data
+            renderFeedbackTable();
+        } catch (error) {
+            console.error("Error fetching feedback:", error);
+        }
+    }
+
+    function renderFeedbackTable() {
+        const tableBody = document.getElementById("feedback-table");
+        tableBody.innerHTML = "";
+
+        let start = (currentPageFeedback - 1) * rowsPerPageFeedback;
+        let end = start + rowsPerPageFeedback;
+        let paginatedData = filteredFeedbacks.slice(start, end);
+
+        paginatedData.forEach(feedback => {
+            let truncatedMessage = feedback.message.length > 15 
+                ? feedback.message.substring(0, 15) + '...' 
+                : feedback.message;
+
+            let row = `<tr class="border-b">
+                <td class="py-2 px-4 whitespace-nowrap">${feedback.id}</td>
+                <td class="py-2 px-4 whitespace-nowrap">${feedback.name}</td>
+                <td class="py-2 px-4 whitespace-nowrap">${feedback.email}</td>
+                <td class="py-2 px-4 whitespace-nowrap">
+                    <span class="cursor-pointer text-blue-500 hover:underline" onclick="showFullMessage('${feedback.message}')">
+                        ${truncatedMessage}
+                    </span>
+                </td>
+                <td class="py-2 px-4 whitespace-nowrap">${new Date(feedback.created_at).toLocaleDateString()}</td>
+            </tr>`;
+            tableBody.innerHTML += row;
+        });
+
+        document.getElementById("pageIndicatorFeedback").textContent = `Page ${currentPageFeedback}`;
+        document.getElementById("prevPageFeedback").disabled = currentPageFeedback === 1;
+        document.getElementById("nextPageFeedback").disabled = end >= filteredFeedbacks.length;
+    }
+
+    document.getElementById("prevPageFeedback").addEventListener("click", () => {
+        if (currentPageFeedback > 1) {
+            currentPageFeedback--;
+            renderFeedbackTable();
+        }
+    });
+
+    document.getElementById("nextPageFeedback").addEventListener("click", () => {
+        if (currentPageFeedback * rowsPerPageFeedback < filteredFeedbacks.length) {
+            currentPageFeedback++;
+            renderFeedbackTable();
+        }
+    });
+
+    document.getElementById("searchFeedback").addEventListener("input", (event) => {
+        const query = event.target.value.toLowerCase();
+        if (query) {
+            filteredFeedbacks = feedbacks.filter(f => f.name.toLowerCase().includes(query) || f.email.toLowerCase().includes(query));
+        } else {
+            filteredFeedbacks = [...feedbacks]; // Reset to original data
+        }
+        currentPageFeedback = 1;
+        renderFeedbackTable();
+    });
+
+    document.getElementById("sortFeedback").addEventListener("change", (event) => {
+        const sortBy = event.target.value;
+        filteredFeedbacks.sort((a, b) => (a[sortBy] > b[sortBy] ? 1 : -1));
+        currentPageFeedback = 1;
+        renderFeedbackTable();
+    });
+
+    function showFullMessage(message) {
+        document.getElementById("fullMessage").textContent = message;
+        document.getElementById("messageModal").classList.remove("hidden");
+    }
+
+    document.getElementById("closeModal").addEventListener("click", () => {
+        document.getElementById("messageModal").classList.add("hidden");
+    });
+
+    fetchFeedback();
+</script>

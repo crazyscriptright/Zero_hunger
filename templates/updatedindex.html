@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Zero Hunger</title>
+    <style>
+        .home-bg {
+            background-image: url('/static/image3.jpg');
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+        }
+        
+      
+      /* Fade-in animation that stays visible */
+      @keyframes fadeInPersistent {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    
+      /* Floating effect */
+      @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+      }
+    
+      /* Apply the animations */
+      .animate-fade-in-persistent {
+        animation: fadeInPersistent 1.5s ease-out forwards, float 3s infinite ease-in-out;
+      }
+    
+      /* Animations */
+      @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    
+        @keyframes slideInDown {
+            from { transform: translateY(-30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    
+        @keyframes zoomIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+    
+        .animate-fadeIn { animation: fadeIn 1s ease-out; }
+        .animate-slideInDown { animation: slideInDown 1s ease-out; }
+        .animate-zoomIn { animation: zoomIn 0.8s ease-out; }
+
+    </style>
+</head>
+<body class="bg-gray-100">
+    <header class="relative flex justify-between items-center py-3 px-6 bg-[#1E293B] text-white shadow-md">
+        <!-- Hamburger Button - Mobile Menu -->
+        <button id="hamburger-btn" class="md:hidden focus:outline-none" onclick="toggleMenu()">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+            </svg>
+        </button>
+        
+        <!-- Logo -->
+        <div class="text-lg font-semibold flex items-center space-x-2">
+            <img src="/static/logo.png" alt="Zero Hunger Logo" class="w-10 h-10 rounded-full">
+            <span class="text-white text-lg">Zero Hunger</span>
+        </div>
+    
+        <!-- Navigation (Hidden on small screens) -->
+        <nav class="hidden md:flex space-x-5">
+            <a href="#home" class="hover:text-gray-300 text-lg">Home</a>
+            <a href="#services" class="hover:text-gray-300 text-lg">Services</a>
+            <a href="/#gallery" class="hover:text-gray-300 text-lg">Gallery</a>
+            <a href="#contact" class="hover:text-gray-300 text-lg">Contact</a>
+            <a href="/about" class="hover:text-gray-300 text-lg">About</a>
+        </nav>
+    
+<!-- Profile Icon or Sign In Button -->
+<div id="profile-section" class="relative hidden">
+    <button id="profile-btn" class="focus:outline-none">
+        <svg class="w-8 h-8 rounded-full" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="8" r="4"></circle>
+            <path d="M6 20c0-5 5-7 6-7s6 2 6 7"></path>
+        </svg>
+    </button>
+    <!-- Dropdown -->
+    <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-44 bg-white rounded-md shadow-lg z-50">
+        <ul class="py-2 text-gray-700 text-sm">
+            <li class="px-4 py-2 font-semibold">
+                <span id="profile-username" class="text-gray-900">Loading...</span>
+            </li>
+            <li><a href="/change-password" class="block px-4 py-2 hover:bg-gray-100">Change Password</a></li>
+            <li><a href="/" class="block px-4 py-2 hover:bg-gray-100" onclick="logout()">Logout</a></li>
+        </ul>
+    </div>
+</div>
+
+<!-- Sign In Button -->
+<div id="sign-in-section" class="hidden">
+    <a href="/login" class="text-white bg-yellow-500 px-4 py-2 rounded-lg hover:bg-yellow-600 transition duration-300">Sign In</a>
+</div>
+
+    
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden absolute top-14 left-0 w-full bg-white shadow-md z-10">
+            <nav class="flex flex-col space-y-2 p-4 text-gray-700 text-sm">
+                <a href="/" class="block px-4 py-2">Home</a>
+                <a href="/aboutus" class="block px-4 py-2 hover:bg-gray-100">About</a>
+                <a href="/gallery" class="block px-4 py-2 hover:bg-gray-100">Gallery</a>
+                <a href="#services" class="block px-4 py-2 hover:bg-gray-100">Services</a>
+                <a href="#contact" class="block px-4 py-2 hover:bg-gray-100">Contact</a>
+            </nav>
+        </div>
+        
+    </header>
+    
+    <section id="home" class="bg-white text-black py-20 ">
+        <div class="container mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center px-6">
+          
+          <!-- Left Side: Text Content -->
+          <div class="text-left opacity-100 transition-all duration-1000 ease-in-out animate-fade-in">
+            <h1 class="text-5xl font-bold mb-4">From Your Heart to Their Bowl</h1>
+            <p class="text-lg mb-4">
+              <strong>Zero Hunger</strong> is on a mission to ensure that no stray dog goes hungry. With your support, we provide food, medical aid, and shelter to these innocent lives struggling on the streets.
+            </p>
+            <p class="text-lg mb-6">
+              Every contribution brings us closer to a world where stray dogs receive the care and nourishment they deserve. Join our community and be a part of this compassionate journey.
+            </p>
+            <a href="/donate" class="bg-yellow-400 px-6 py-3 rounded-lg text-lg font-bold hover:bg-yellow-500 transition transform hover:scale-105">
+              Donate Now
+            </a>
+          </div>
+          
+          <!-- Right Side: Larger Image with Smooth Animation -->
+          <div class="flex justify-center">
+            <img src="/static/image3.jpg" 
+                 alt="Stray dogs being fed" 
+                 class="w-full max-w-md md:max-w-lg h-auto rounded-lg shadow-lg object-cover opacity-100 animate-fade-in-persistent">
+          </div>
+    
+        </div>
+    </section>
+    
+
+    <!-- <section id="home" class="home-bg text-white">
+        <div>
+            <h1 class="text-5xl font-bold mb-4">From Your Heart to Their Bowl</h1>
+            <p class="text-lg">Join us in nourishing stray dogs and making a difference.</p>
+            <a href="donate.html" class="mt-6 bg-yellow-400 px-6 py-3 rounded-lg text-lg font-bold hover:bg-yellow-500">Donate Now</a>
+        </div>
+    </section> -->
+    
+    <!-- <section id="about" class="py-16 bg-gray-200 text-gray-900">
+        <div class="container mx-auto text-center">
+            <h2 class="text-3xl font-bold mb-6">About Zero Hungry</h2>
+            <p class="text-lg mb-8">Zero Hungry is an initiative dedicated to feeding, sheltering, and caring for stray dogs. Our mission is to ensure that no dog goes hungry and every stray receives the love and care they deserve.</p>
+            <img src="/static/aboutpg.jpg" alt="Stray dogs being fed" class="mx-auto rounded-lg shadow-md w-1/2">
+        </div>
+    </section> -->
+
+    <section id="services" class="text-gray-700 body-font bg-gray-100 py-24">
+        <div class="container px-5 mx-auto">
+            <!-- Section Header -->
+            <div class="flex flex-col text-center w-full mb-16 animate-fadeIn">
+                <h1 class="text-lg text-yellow-500 tracking-widest font-bold uppercase ">
+                    Our Mission
+                </h1>
+                <h1 class="sm:text-5xl text-3xl font-extrabold title-font mb-6 text-black">
+                    Nourish Every Paw, Change a Life 🐾
+                </h1>
+                <p class="lg:w-2/3 mx-auto leading-relaxed text-lg text-black text-center">
+                    At <strong class="text-black">Zero Hunger</strong>, we believe that every stray deserves love, care, and a full belly. 
+                    Through dedicated feeding programs, rescue missions, and medical aid, we are committed to making a lasting impact. 
+                    <span class="text-black font-medium">Join us in giving every stray a chance at a better life.</span>
+                </p>
+            </div>
+        </div>
+
+    
+      
+          <!-- Services Grid -->
+          <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-3 px-5 mx-4">
+            <!-- Support for Animal Shelters -->
+            <div class="bg-white p-6 rounded-lg shadow-lg transform transition duration-500 hover:scale-105 hover:shadow-2xl">
+              <img class="rounded-lg w-full h-40 object-cover mb-6" src="/static/image7.jpg" alt="Dog Shelter">
+              <h2 class="text-lg text-gray-900 font-bold title-font mb-3">Support for Dog Shelters</h2>
+              <p class="leading-relaxed text-gray-700 text-justify">
+                Helping shelters by donating food, providing medical aid, and assisting in adoption efforts to give dogs a safe and loving home.
+              </p>
+              <a href="/dogshelter" class="mt-4 inline-block text-yellow-500 font-semibold hover:text-yellow-700 transition duration-300">Learn More →</a>
+            </div>
+      
+            <!-- Medical Care -->
+            <div class="bg-white p-6 rounded-lg shadow-lg transform transition duration-500 hover:scale-105 hover:shadow-2xl">
+              <img class="rounded-lg w-full h-40 object-cover mb-6" src="/static/medical.avif" alt="Veterinary Care">
+              <h2 class="text-lg text-gray-900 font-bold title-font mb-3">Medical Care</h2>
+              <p class="leading-relaxed text-gray-700 text-justify">
+                We organize vaccination and sterilization drives to improve the health and well-being of stray dogs, preventing diseases and overpopulation.
+              </p>
+              <a href="/medicalcare" class="mt-4 inline-block text-yellow-500 font-semibold hover:text-yellow-700 transition duration-300">Learn More →</a>
+            </div>
+      
+            <!-- Volunteer Programs -->
+            <div class="bg-white p-6 rounded-lg shadow-lg transform transition duration-500 hover:scale-105 hover:shadow-2xl">
+              <img class="rounded-lg w-full h-40 object-cover mb-6" src="/static/image6.jpg" alt="Volunteer Programs">
+              <h2 class="text-lg text-gray-900 font-bold title-font mb-3">Volunteer Programs</h2>
+              <p class="leading-relaxed text-gray-700 text-justify">
+                Join our dedicated volunteers in feeding, caring, and rescuing stray dogs. Help us organize events and drives to create a lasting impact.
+              </p>
+              <a href="/volunteer" class="mt-4 inline-block text-yellow-500 font-semibold hover:text-yellow-700 transition duration-300">Learn More →</a>
+            </div>
+      
+            <!-- Adoption Program -->
+      <div class="bg-white p-6 rounded-lg shadow-lg transform transition duration-500 hover:scale-105 hover:shadow-2xl">
+        <img class="rounded-lg w-full h-40 object-cover mb-6" src="/static/adoptdog.jpg" alt="Adoption Program">
+        <h2 class="text-lg text-gray-900 font-bold title-font mb-3">Adoption Program</h2>
+        <p class="leading-relaxed text-gray-700 text-justify">
+            Give a stray dog a second chance! Our adoption program connects rescued dogs with loving families, ensuring they receive the care and affection they deserve. 
+        </p>
+        <a href="/adoption" class="mt-4 inline-block text-yellow-500 font-semibold hover:text-yellow-700 transition duration-300">Learn More →</a>
+      </div>
+      
+          </div>
+        </div>
+      </section>
+
+    <section id="gallery" class="text-gray-600 body-font bg-gray-50">
+        <!-- <div class="container px-5 py-20 mx-auto"> -->
+            <div class="text-center  py-14 mx-10">
+                <h1 class="sm:text-4xl text-3xl font-extrabold title-font text-black mb-4">
+                    <span class="mr-2">🐶</span> 
+                    <span class="underline decoration-gray-500 decoration-4 underline-offset-4">Gallery</span>
+                </h1>
+                <p class="text-lg leading-relaxed text-black text-center py-4">
+                    <strong class="text-black">Zero Hunger</strong> is dedicated to ensuring that no stray dog goes hungry or without care. Through our <span class="font-semibold">feeding drives, rescue missions, and medical aid programs</span>, we strive to make a meaningful impact. This gallery captures heartfelt moments from our journey—providing nourishment, medical support, and finding loving homes for rescued dogs. <span class="text-black font-medium">Every picture tells a story of hope, compassion, and transformation.</span> ❤️🐶
+                </p>
+            </div>
+            <div class="flex flex-wrap md:-m-2 -m-1">
+                <div class="flex flex-wrap w-1/2">
+                    <div class="md:p-2 p-1 w-1/2">
+                        <img alt="gallery" class="w-full object-cover h-full object-center block" src="/static/adoptdog.jpg">
+                    </div>
+                    <div class="md:p-2 p-1 w-1/2">
+                        <img alt="gallery" class="w-full object-cover h-full object-center block" src="/static/feeding.jpg">
+                    </div>
+                    <div class="md:p-2 p-1 w-full">
+                        <img alt="gallery" class="w-full h-full object-cover object-center block" src="/static/image2.jpg">
+                    </div>
+                </div>
+                <div class="flex flex-wrap w-1/2">
+                    <div class="md:p-2 p-1 w-full">
+                        <img alt="gallery" class="w-full h-full object-cover object-center block" src="/static/image1.jpg">
+                    </div>
+                    <div class="md:p-2 p-1 w-1/2">
+                        <img alt="gallery" class="w-full object-cover h-full object-center block" src="/static/medical.avif">
+                    </div>
+                    <div class="md:p-2 p-1 w-1/2">
+                        <img alt="gallery" class="w-full object-cover h-full object-center block" src="/static/shelter.avif">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+      {% include 'Dog_fetch.html' %}
+      {% include 'resue.html' %}
+      <section class="text-gray-600 body-font">
+        <div class="container px-5 py-16 mx-auto animate-fade-in">
+            <div class="text-center mb-10">
+                <h1 class="text-4xl font-bold text-gray-900">Be Their Hope: Feed & Heal Stray Dogs Today</h1>
+                <p class="text-lg text-gray-700 mt-3 px-6 md:px-20">
+                    Your kindness can provide food, medical care, and a second chance at life for stray dogs in need.
+                </p>
+            </div>
+    
+            <div class="flex flex-wrap -mx-4 -mb-10 text-center">
+                
+                <!-- Feed to Help Stray Dogs -->
+                <div class="sm:w-1/2 mb-10  bg-white rounded-lg">
+                    <div class="rounded-lg overflow-hidden h-80 transition-shadow duration-500">
+                        <img alt="Feeding stray dogs" class="object-cover object-center  transition-transform duration-500 hover:scale-105" src="/static/imagedonation.jpg">
+                    </div>
+                    <h2 class="title-font text-2xl font-medium text-gray-900 mt-6 mb-3 font-bold">Help End Hunger for Stray Dogs</h2>
+                    <p class="leading-relaxed text-base text-justify mx-4">
+                        Every day, thousands of stray dogs struggle to find their next meal. Zero Hunger is dedicated to feeding, protecting, 
+                        and caring for these innocent lives. With your support, we can ensure that no stray dog goes hungry.
+                    </p>
+                    <p class="leading-relaxed text-base text-justify mt-2 mx-4">
+                        Your donation helps provide nutritious meals, clean water, and essential care for dogs living on the streets. 
+                        Together, we can create a world where every dog is loved and cared for.
+                    </p>
+                    <!-- <a href="/donate">
+                        <button class="flex mx-auto mt-6 text-white bg-yellow-500 border-0 py-2 px-6 focus:outline-none hover:bg-yellow-600 rounded-lg transition-transform duration-300 hover:scale-105 ">
+                            Donate Now
+                        </button>
+                    </a> -->
+                    <a href="/donate">
+                        <button class="flex mx-auto mt-3 text-white bg-yellow-500 border-0 py-3 px-8 text-lg font-semibold focus:outline-none hover:bg-yellow-600 rounded-lg transition-transform duration-300 hover:scale-105">
+                            Donate Now
+                        </button>
+                    </a>
+                    
+                </div>
+    
+                <!-- Medical Care for Stray Dogs -->
+                <div class="sm:w-1/2 mb-10 px-4 bg-white rounded-lg">
+                    <div class="rounded-lg overflow-hidden h-80 shadow-lg hover:shadow-xl transition-shadow duration-500">
+                        <img alt="Stray dog receiving medical care" class="object-cover object-center w-full h-full transition-transform duration-500 hover:scale-105" src="/static/medical.avif">
+                    </div>
+                    <h2 class="title-font text-2xl font-medium text-gray-900 mt-6 mb-3 font-bold">Medical Care for Stray Dogs</h2>
+                    <p class="leading-relaxed text-base text-justify">
+                        Many stray dogs suffer from injuries, infections, and diseases with no one to help them. Zero Hunger ensures they get the medical attention, vaccinations, and treatments they desperately need.
+                    </p>
+                    <p class="leading-relaxed text-base text-justify mt-2">
+                        Your support can save lives. From emergency care to preventive treatments, your donation provides life-saving aid to the most vulnerable dogs on our streets.
+                    </p>
+                    <!-- <a href="/donate">
+                        <button class="flex mx-auto mt-6 text-white bg-yellow-500 border-0 py-2 px-6 focus:outline-none hover:bg-yellow-600 rounded-lg transition-transform duration-300 hover:scale-105">
+                            Donate for Medical Aid
+                        </button>
+                    </a> -->
+                    <a href="/donate">
+                        <button class="flex mx-auto mt-6 text-white bg-yellow-500 border-0 py-3 px-8 text-lg font-semibold focus:outline-none hover:bg-yellow-600 rounded-lg transition-transform duration-300 hover:scale-105">
+                            Donate for Medical Aid
+                        </button>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    
+    <section class="text-gray-600 body-font bg-gradient-to-b from-gray-50 to-gray-200 py-16">
+        <div class="text-center text-4xl font-bold text-gray-900 mb-8">
+            <h1 class="tracking-wide">What People Say About Us</h1>
+            <p class="text-lg text-gray-700 mt-3 max-w-2xl mx-auto">
+                Thousands of stray animals have been rescued, fed, and treated because of kind-hearted people like you. 
+                Here is what our supporters and beneficiaries say about <span class="text-black font-semibold">Zero Hunger</span>.
+            </p>
+        </div>
+    
+        <div class="container mx-auto px-5">
+            <div class="flex flex-wrap -m-4">
+                
+                <!-- Testimonial 1 -->
+                <div class="lg:w-1/3 md:w-1/2 w-full p-4">
+                    <div class="h-full bg-white shadow-lg rounded-lg p-6 text-center transition-transform duration-300 hover:scale-105">
+                        <img alt="testimonial" class="w-24 h-24 mb-4 object-cover object-center rounded-full border-4 border-yellow-500 mx-auto shadow-md" src="/static/femaledummypic.jpg">
+                        <p class="leading-relaxed text-gray-700 italic">
+                            “Zero Hungry is truly making a difference! I have personally seen stray dogs in my area being fed and treated for illnesses. 
+                            This initiative is a blessing for these innocent animals.”
+                        </p>
+                        <span class="inline-block h-1 w-12 rounded bg-yellow-500 mt-4 mb-2"></span>
+                        <h2 class="text-gray-900 font-medium title-font text-lg">Samantha Ray</h2>
+                        <p class="text-gray-500 text-sm">Animal Rights Advocate</p>
+                    </div>
+                </div>
+    
+                <!-- Testimonial 2 -->
+                <div class="lg:w-1/3 md:w-1/2 w-full p-4">
+                    <div class="h-full bg-white shadow-lg rounded-lg p-6 text-center transition-transform duration-300 hover:scale-105">
+                        <img alt="testimonial" class="w-24 h-24 mb-4 object-cover object-center rounded-full border-4 border-yellow-500 mx-auto shadow-md" src="/static/maledummypic.jpg">
+                        <p class="leading-relaxed text-gray-700 italic">
+                            “I started donating to Zero Hungry a few months ago, and I can see the real impact of my contributions. 
+                            Seeing rescued dogs recover and find safe shelters is heartwarming.”
+                        </p>
+                        <span class="inline-block h-1 w-12 rounded bg-yellow-500 mt-4 mb-2"></span>
+                        <h2 class="text-gray-900 font-medium title-font text-lg">Rahul Verma</h2>
+                        <p class="text-gray-500 text-sm">Regular Donor</p>
+                    </div>
+                </div>
+    
+                <!-- Testimonial 3 -->
+                <div class="lg:w-1/3 md:w-1/2 w-full p-4">
+                    <div class="h-full bg-white shadow-lg rounded-lg p-6 text-center transition-transform duration-300 hover:scale-105">
+                        <img alt="testimonial" class="w-24 h-24 mb-4 object-cover object-center rounded-full border-4 border-yellow-500 mx-auto shadow-md" src="/static/dummypics.jpg">
+                        <p class="leading-relaxed text-gray-700 italic">
+                            “As a vet, I have worked closely with Zero Hungry, and I admire their dedication. 
+                            Their efforts in medical aid, vaccination, and feeding programs are truly life-changing.”
+                        </p>
+                        <span class="inline-block h-1 w-12 rounded bg-yellow-500 mt-4 mb-2"></span>
+                        <h2 class="text-gray-900 font-medium title-font text-lg">Dr. Ayesha Khan</h2>
+                        <p class="text-gray-500 text-sm">Veterinarian</p>
+                    </div>
+                </div>
+    
+            </div>
+        </div>
+    </section>
+    
+
+
+
+    <section id="contact" class="bg-gray-100 text-gray-900 py-16">
+        <div class="container mx-auto text-center animate-fadeIn">
+            <h2 class="text-4xl font-extrabold mb-4 animate-slideInDown">Contact Us </h2>
+            <p class="text-lg mb-8 text-gray-700 animate-fadeIn delay-200">
+                Reach out to volunteer, donate, or adopt a pet. We’d love to hear from you!
+            </p>
+    
+            <div class="max-w-lg mx-auto bg-white p-8 rounded-lg shadow-lg animate-zoomIn">
+                <form id="feedbackForm" class="space-y-6">
+                    <!-- Full Name Field -->
+                    <div class="text-left">
+                        <label for="name" class="block text-gray-700 font-semibold mb-2">Full Name</label>
+                        <input type="text" id="name" name="name" class="w-full p-3 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-300 focus:outline-none transition-all duration-300 hover:shadow-md" placeholder="Your Full Name" required>
+                    </div>
+    
+                    <!-- Email Field -->
+                    <div class="text-left">
+                        <label for="email" class="block text-gray-700 font-semibold mb-2">Email</label>
+                        <input type="email" id="email" name="email" class="w-full p-3 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-300 focus:outline-none transition-all duration-300 hover:shadow-md" placeholder="Your Email" required>
+                    </div>
+    
+                    <!-- Message Field -->
+                    <div class="text-left">
+                        <label for="message" class="block text-gray-700 font-semibold mb-2">Message</label>
+                        <textarea id="message" name="message" class="w-full p-3 h-32 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-300 focus:outline-none transition-all duration-300 hover:shadow-md" placeholder="Your Message" required></textarea>
+                    </div>
+    
+                    <!-- Submit Button -->
+                    <button type="submit" class="w-full bg-yellow-500 text-white py-3 rounded-md font-bold text-lg hover:bg-yellow-600 transition-transform duration-300 hover:scale-105">
+                        Submit Feedback
+                    </button>
+                </form>
+                <p id="responseMessage" class="mt-3 text-center text-green-600 hidden"></p>
+            </div>
+        </div>
+    </section>
+    
+
+    <script>
+        document.getElementById("feedbackForm").addEventListener("submit", async function(event) {
+            event.preventDefault();
+    
+            const formData = {
+                name: document.getElementById("name").value,
+                email: document.getElementById("email").value,
+                message: document.getElementById("message").value
+            };
+    
+            const response = await fetch("/feedback", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(formData)
+            });
+    
+            const result = await response.json();
+            document.getElementById("responseMessage").textContent = result.message;
+            document.getElementById("responseMessage").classList.remove("hidden");
+    
+            // Reset the form after successful submission
+            document.getElementById("feedbackForm").reset();
+        });
+    </script>
+    
+
+    <script>
+document.addEventListener("DOMContentLoaded", function () {
+    const hamburgerBtn = document.getElementById("hamburger-btn");
+    const mobileMenu = document.getElementById("mobile-menu");
+    const profileBtn = document.getElementById("profile-btn");
+    const profileDropdown = document.getElementById("profile-dropdown");
+    const profileUsername = document.getElementById("profile-username");
+    const profileSection = document.getElementById("profile-section");
+    const signInSection = document.getElementById("sign-in-section");
+
+    // Get stored username from sessionStorage
+    const storedUsername = sessionStorage.getItem("username");
+
+    // Check if username exists and update profile section
+    if (storedUsername) {
+        profileUsername.textContent = storedUsername;
+        profileSection.classList.remove("hidden"); // Show profile
+        signInSection.classList.add("hidden"); // Hide sign-in button
+    } else {
+        profileSection.classList.add("hidden"); // Hide profile
+        signInSection.classList.remove("hidden"); // Show sign-in button
+    }
+
+    // Toggle Mobile Menu
+    hamburgerBtn?.addEventListener("click", function (event) {
+        event.stopPropagation(); // Prevent event bubbling
+        mobileMenu?.classList.toggle("hidden");
+    });
+
+    // Close Mobile Menu when clicking outside
+    document.addEventListener("click", function (event) {
+        if (!hamburgerBtn?.contains(event.target) && !mobileMenu?.contains(event.target)) {
+            mobileMenu?.classList.add("hidden");
+        }
+    });
+
+    // Toggle Profile Dropdown
+    profileBtn?.addEventListener("click", function (event) {
+        event.stopPropagation(); // Prevent immediate closing
+        profileDropdown?.classList.toggle("hidden");
+    });
+
+    // Close Profile Dropdown when clicking outside
+    document.addEventListener("click", function (event) {
+        if (!profileBtn?.contains(event.target) && !profileDropdown?.contains(event.target)) {
+            profileDropdown?.classList.add("hidden");
+        }
+    });
+
+    // Hide Mobile Menu on screen resize
+    window.addEventListener("resize", function () {
+        if (window.innerWidth >= 768) {
+            mobileMenu?.classList.add("hidden");
+        }
+    }); 
+
+    // Logout Function
+    window.logout = function () {
+        sessionStorage.removeItem("username"); // Clear session data
+        profileUsername.textContent = "Not logged in";
+        profileSection?.classList.add("hidden"); // Hide profile section
+        signInSection?.classList.remove("hidden"); // Show sign-in button
+        window.location.href = "/"; // Redirect to home
+    };
+});
+     </script>
+
+    <footer class="bg-gray-900 text-gray-300 py-10">
+        <div class="container mx-auto px-6 max-w-screen-lg">
+            <div class="grid md:grid-cols-3 gap-12 text-center md:text-left">
+                <!-- About Section -->
+                <div>
+                    <h2 class="text-white text-xl font-semibold mb-3">Zero Hunger for Stray Dogs</h2>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Dedicated to feeding, rescuing, and providing medical care to stray dogs. 
+                    </p>
+                </div>
+
+                <!-- Quick Links -->
+                <div>
+                    <h2 class="text-white text-lg font-semibold mb-3">Quick Links</h2>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="/about" class="hover:text-yellow-400 transition duration-300">About Us</a></li>
+                        <li><a href="#services" class="hover:text-yellow-400 transition duration-300">Our Services</a></li>
+                        <li><a href="/donate" class="hover:text-yellow-400 transition duration-300">Donate</a></li>
+                        <li><a href="/contact" class="hover:text-yellow-400 transition duration-300">Contact</a></li>
+                    </ul>
+                </div>
+
+                <!-- Contact Details -->
+                <div>
+                    <h2 class="text-white text-lg font-semibold mb-3">Contact Us</h2>
+                    <p class="text-sm">Email: <a href="mailto:info@zerohungerfordogs.org" class="text-yellow-400 hover:underline">info@zerohungerfordogs.org</a></p>
+                    <p class="text-sm">Phone: <a href="tel:+1234567890" class="text-yellow-400 hover:underline">+1 (234) 567-890</a></p>
+                    <p class="text-sm">Zero Hunger, Vidynagar, Hubli, Karnataka, India</p>
+                </div>
+            </div>
+
+            <!-- Divider Line -->
+            <div class="border-t border-gray-700 mt-8 pt-6">
+                <p class="text-sm text-center">&copy; 2025 Zero Hunger for Stray Dogs. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+            
+            
+      
+</body>
+</html>

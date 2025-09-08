@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Dogs 🐶</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 p-8">
+
+    <div class="container mx-auto p-6">
+        <h1 class="text-4xl font-bold text-center text-blue-600 mb-10">🐾 All Dogs Available 🐶</h1>
+
+        <!-- Search and Filter Section -->
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
+            <input id="searchInput" class="p-3 w-full md:w-1/3 border rounded-lg focus:outline-none" placeholder="Search by dog name..." oninput="filterDogs()" />
+            <select id="sortOptions" class="p-3 border rounded-lg focus:outline-none" onchange="sortDogs()">
+                <option value="name">Sort by Name</option>
+                <option value="age">Sort by Age</option>
+            </select>
+        </div>
+
+        <!-- Dogs Grid -->
+        <div id="dogsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"></div>
+
+        <!-- Pagination Controls -->
+        <div class="flex justify-center mt-8 gap-6">
+            <button onclick="prevPage()" class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400">Previous</button>
+            <span id="pageIndicator" class="text-lg font-semibold">Page 1</span>
+            <button onclick="nextPage()" class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400">Next</button>
+        </div>
+    </div>
+
+    <!-- Modal for Adoption Form -->
+    <div id="adoptionModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-6 rounded-lg w-96">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">🐶 Adopt Dog</h2>
+            <input type="email" id="emailInput" placeholder="Enter your email" class="w-full p-2 mb-4 border rounded-lg focus:outline-none" />
+            <input type="text" id="fullNameInput" placeholder="Enter your full name" class="w-full p-2 mb-4 border rounded-lg focus:outline-none" />
+            <input type="text" id="phoneNumberInput" placeholder="Enter your phone number" class="w-full p-2 mb-4 border rounded-lg focus:outline-none" />
+            <textarea id="addressInput" placeholder="Enter your address" class="w-full p-2 mb-4 border rounded-lg focus:outline-none"></textarea>
+            <label class="flex items-center mb-4">
+                <input type="checkbox" id="agreementInput" class="mr-2">
+                <span>I accept the adoption agreement</span>
+            </label>
+            <button onclick="confirmAdoption()" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">
+                Confirm Adoption
+            </button>
+            <button onclick="closeModal()" class="mt-4 text-gray-500">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        let allDogs = [];
+        let currentPage = 1;
+        const dogsPerPage = 8;
+        let selectedDogId = null; // For storing dog ID when opening modal
+
+        // Fetch all dogs
+        async function fetchDogs() {
+            const response = await fetch("/dogs");
+            const data = await response.json();
+            allDogs = data.dogs;
+            renderDogs();
+        }
+
+        // Render Dogs
+        function renderDogs() {
+            const startIndex = (currentPage - 1) * dogsPerPage;
+            const endIndex = startIndex + dogsPerPage;
+            const dogsToShow = allDogs.slice(startIndex, endIndex);
+
+            const container = document.getElementById("dogsGrid");
+            container.innerHTML = "";
+            dogsToShow.forEach(dog => {
+                container.innerHTML += `
+                    <div class="bg-white rounded-lg shadow-lg p-5 hover:scale-105 transition-all duration-300">
+                        <div class="w-full h-48 rounded-lg overflow-hidden mb-4">
+                            <img src="${dog.image}" class="w-full h-full object-cover">
+                        </div>
+                        <h2 class="text-xl font-semibold text-gray-800 mb-2">${dog.name_of_dog}</h2>
+                        <p class="text-gray-600 mb-2">Age: ${dog.age} years</p>
+                        <p class="text-gray-600">Sex: ${dog.sex}</p>
+                        <button onclick="openModal(${dog.id})" class="w-full mt-4 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">
+                            Adopt Now 🐶
+                        </button>
+                    </div>`;
+            });
+
+            document.getElementById("pageIndicator").innerText = `Page ${currentPage}`;
+        }
+
+        // Filter Dogs by Search
+        function filterDogs() {
+            const searchQuery = document.getElementById("searchInput").value.toLowerCase();
+            const filteredDogs = allDogs.filter(dog =>
+                dog.name_of_dog.toLowerCase().includes(searchQuery)
+            );
+            allDogs = filteredDogs.length ? filteredDogs : allDogs;
+            currentPage = 1;
+            renderDogs();
+        }
+
+        // Sort Dogs
+        function sortDogs() {
+            const sortBy = document.getElementById("sortOptions").value;
+            allDogs.sort((a, b) => sortBy === "age" ? a.age - b.age : a.name_of_dog.localeCompare(b.name_of_dog));
+            renderDogs();
+        }
+
+        // Open Adoption Modal
+        function openModal(dogId) {
+            selectedDogId = dogId; // Store the dog ID
+            document.getElementById("adoptionModal").classList.remove("hidden");
+        }
+
+        // Close Modal
+        function closeModal() {
+            selectedDogId = null; // Clear the dog ID
+            document.getElementById("adoptionModal").classList.add("hidden");
+        }
+
+        // Handle Adoption
+        async function confirmAdoption() {
+            const email = document.getElementById("emailInput").value;
+            const fullName = document.getElementById("fullNameInput").value;
+            const phoneNumber = document.getElementById("phoneNumberInput").value;
+            const address = document.getElementById("addressInput").value;
+            const agreementAccepted = document.getElementById("agreementInput").checked;
+
+            if (!email || !fullName || !phoneNumber || !address || !agreementAccepted) {
+                alert("Please fill in all fields and accept the agreement.");
+                return;
+            }
+
+            const response = await fetch(`/adopt-dog/${selectedDogId}?email=${email}&owner_full_name=${fullName}&phone_number=${phoneNumber}&address=${address}&agreement_accepted=${agreementAccepted}`, {
+                method: "POST",
+            });
+
+            const data = await response.json();
+            alert(data.message);
+            closeModal();
+            fetchDogs(); // Refresh the dog list
+        }
+
+        // Pagination Controls
+        function nextPage() {
+            if ((currentPage * dogsPerPage) < allDogs.length) {
+                currentPage++;
+                renderDogs();
+            }
+        }
+
+        function prevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                renderDogs();
+            }
+        }
+
+        fetchDogs();
+    </script>
+    <script src="/static/js/loginCheck.js"></script>
+
+</body>
+
+</html>

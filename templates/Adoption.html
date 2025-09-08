@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adopt a Stray Dog</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-white text-gray-900">
+
+    <div class="container mx-auto px-6 py-12">
+        <!-- Header -->
+        <h1 class="text-5xl font-extrabold text-center text-green-600 mb-6">Adopt a Stray, Change a Life</h1>
+
+        <!-- Image -->
+        <div class="flex justify-center">
+            <img src="/static/adoptdog.png" alt="Adopt a Dog"
+                class="w-full max-w-lg h-auto sm:h-[400px] object-cover rounded-xl shadow-xl transition-transform transform hover:scale-105">
+        </div>
+
+        <!-- Introduction Text -->
+        <p class="text-lg text-gray-700 leading-relaxed text-center mt-6">
+            Every dog deserves a loving home. Adoption gives a stray dog a second chance at life, providing them with warmth, 
+            love, and care. Make a difference today by opening your heart to a furry friend.
+        </p>
+
+        <!-- Benefits of Adoption -->
+        <div class="mt-10">
+            <h2 class="text-3xl font-semibold text-center text-blue-600 mb-6">Why Adopt?</h2>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="p-6 bg-gray-100 rounded-lg shadow-md hover:bg-gray-200 transition duration-300">
+                    <h3 class="text-xl font-semibold text-green-600">Save a Life</h3>
+                    <p class="text-gray-700">Give a homeless dog a new home and a second chance.</p>
+                </div>
+                <div class="p-6 bg-gray-100 rounded-lg shadow-md hover:bg-gray-200 transition duration-300">
+                    <h3 class="text-xl font-semibold text-green-600">Lifelong Companion</h3>
+                    <p class="text-gray-700">Find a loyal and loving friend who will always be by your side.</p>
+                </div>
+                <div class="p-6 bg-gray-100 rounded-lg shadow-md hover:bg-gray-200 transition duration-300">
+                    <h3 class="text-xl font-semibold text-green-600">Reduce Stray Population</h3>
+                    <p class="text-gray-700">Help control the growing number of stray dogs on the streets.</p>
+                </div>
+                <div class="p-6 bg-gray-100 rounded-lg shadow-md hover:bg-gray-200 transition duration-300">
+                    <h3 class="text-xl font-semibold text-green-600">Health Benefits</h3>
+                    <p class="text-gray-700">Adopting a dog has been shown to reduce stress and improve mental well-being.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Call to Action -->
+        <div class="flex justify-center mt-10">
+            <a href="#" onclick="handleAdoptNowClick()"
+            class="px-6 py-3 bg-green-500 hover:bg-green-600 text-white text-lg font-semibold rounded-lg shadow-lg transition-transform transform hover:scale-110">
+                Adopt Now
+            </a>
+        </div>
+    </div>
+
+    <script>
+        function handleAdoptNowClick() {
+            const storedUsername = sessionStorage.getItem("username");
+            if (storedUsername) {
+                window.location.href = "/all-dogs";
+            } else {
+                window.location.href = "/login";
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const profileUsername = document.getElementById("profile-username");
+            const profileSection = document.getElementById("profile-section");
+
+            // Get stored username from sessionStorage
+            const storedUsername = sessionStorage.getItem("username");
+
+            // Check if username exists and update profile section
+            if (storedUsername) {
+                profileUsername.textContent = storedUsername;
+                profileSection?.classList.remove("hidden"); // Show profile
+            } else {
+                profileSection?.classList.add("hidden"); // Hide profile if not logged in
+            }
+        });
+    </script>
+
+</body>
+</html>

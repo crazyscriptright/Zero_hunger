@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Dogs - Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body class="bg-gray-50 p-6">
+
+    <div class="max-w-7xl mx-auto bg-white p-8 rounded-xl shadow-lg animate__animated animate__fadeIn">
+        <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">🐶 All Dogs List</h2>
+
+        <!-- Search and Filter -->
+        <div class="flex flex-wrap gap-4 mb-6">
+            <input type="text" id="search" placeholder="Search by name..." 
+                   class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all flex-grow min-w-[200px]">
+            <select id="filterGender" 
+                    class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                <option value="">Filter by Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+            </select>
+            <select id="filterAdoption" 
+                    class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                <option value="">Adoption Status</option>
+                <option value="adopted">Adopted</option>
+                <option value="not_adopted">Not Adopted</option>
+            </select>
+            <input type="date" id="filterAdoptionDateFrom" placeholder="Adopted After" 
+                   class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+            <input type="date" id="filterAdoptionDateTo" placeholder="Adopted Before" 
+                   class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+            <select id="sortBy" 
+                    class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                <option value="">Sort By</option>
+                <option value="name_asc">Name (A-Z)</option>
+                <option value="name_desc">Name (Z-A)</option>
+                <option value="age_asc">Age (Low to High)</option>
+                <option value="age_desc">Age (High to Low)</option>
+            </select>
+            <button id="downloadReport" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all whitespace-nowrap">
+                Download Report
+            </button>
+        </div>
+
+        <!-- Dogs Table -->
+        <div class="overflow-x-auto rounded-lg shadow-sm">
+            <table class="w-full border-collapse">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="p-4 text-left text-gray-700 font-semibold cursor-pointer hover:bg-gray-200 transition-all" onclick="sortTable('id')">ID ⬆⬇</th>
+                        <th class="p-4 text-left text-gray-700 font-semibold cursor-pointer hover:bg-gray-200 transition-all" onclick="sortTable('name_of_dog')">Name ⬆⬇</th>
+                        <th class="p-4 text-left text-gray-700 font-semibold">Sex</th>
+                        <th class="p-4 text-left text-gray-700 font-semibold cursor-pointer hover:bg-gray-200 transition-all" onclick="sortTable('age')">Age ⬆⬇</th>
+                        <th class="p-4 text-left text-gray-700 font-semibold">Owner</th>
+                        <th class="p-4 text-left text-gray-700 font-semibold">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="dogsTableBody" class="divide-y divide-gray-200">
+                    <!-- Dog data will be inserted here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex justify-center mt-6">
+            <button id="prevPage" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all mx-2">Previous</button>
+            <span id="pageInfo" class="px-4 py-2 text-gray-700">Page 1</span>
+            <button id="nextPage" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all mx-2">Next</button>
+        </div>
+    </div>
+
+    <!-- Edit Dog Modal -->
+    <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
+        <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md animate__animated animate__zoomIn">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Edit Dog Details</h2>
+            <input type="hidden" id="editDogId">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-gray-700 mb-2">Name:</label>
+                    <input type="text" id="editName" 
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2">Sex:</label>
+                    <select id="editSex" 
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2">Age:</label>
+                    <input type="number" id="editAge" 
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2">Owner:</label>
+                    <input type="text" id="editOwner" 
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                </div>
+            </div>
+            <div class="flex justify-end gap-4 mt-6">
+                <button class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all" onclick="closeModal()">Cancel</button>
+                <button class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all" onclick="saveDog()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let dogsData = [];
+        let currentPage = 1;
+        const rowsPerPage = 5;
+        let sortKey = "id";
+        let sortOrder = "asc";
+
+        // Fetch all dogs from backend
+        async function fetchDogs() {
+            const response = await fetch("/admin/dogs");
+            const data = await response.json();
+            dogsData = data.dogs.map(dog => ({
+                ...dog,
+                dateObj: new Date(dog.created_date),
+                adoptedDateObj: dog.adopted_date ? new Date(dog.adopted_date) : null
+            }));
+            displayDogs();
+        }
+
+        // Display dogs with pagination
+        function displayDogs() {
+            const tableBody = document.getElementById("dogsTableBody");
+            tableBody.innerHTML = "";
+
+            let filteredDogs = applyFilters();
+            let sortedDogs = sortDogs(filteredDogs);
+            let start = (currentPage - 1) * rowsPerPage;
+            let paginatedDogs = sortedDogs.slice(start, start + rowsPerPage);
+
+            paginatedDogs.forEach((dog, index) => {
+                let row = `<tr class="${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-gray-100 transition-all">
+                    <td class="p-4 text-gray-700">${dog.id}</td>
+                    <td class="p-4 text-gray-700">${dog.name_of_dog}</td>
+                    <td class="p-4 text-gray-700">${dog.sex}</td>
+                    <td class="p-4 text-gray-700">${dog.age}</td>
+                    <td class="p-4 text-gray-700">${dog.owner || "Not Adopted"}</td>
+                    <td class="p-4">
+                        <button class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-all mr-2" onclick="editDog(${dog.id})">Edit</button>
+                        <button class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all" onclick="deleteDog(${dog.id})">Delete</button>
+                    </td>
+                </tr>`;
+                tableBody.innerHTML += row;
+            });
+
+            document.getElementById("pageInfo").innerText = `Page ${currentPage}`;
+            document.getElementById("prevPage").disabled = currentPage === 1;
+            document.getElementById("nextPage").disabled = (currentPage * rowsPerPage) >= filteredDogs.length;
+        }
+
+        // Filter function
+        function applyFilters() {
+            let searchQuery = document.getElementById("search").value.toLowerCase();
+            let genderFilter = document.getElementById("filterGender").value;
+            let adoptionFilter = document.getElementById("filterAdoption").value;
+            let adoptionDateFrom = document.getElementById("filterAdoptionDateFrom").value;
+            let adoptionDateTo = document.getElementById("filterAdoptionDateTo").value;
+
+            return dogsData.filter(dog => {
+                // Text search filter
+                const matchesSearch = searchQuery ? dog.name_of_dog.toLowerCase().includes(searchQuery) : true;
+                
+                // Gender filter
+                const matchesGender = genderFilter === "" || dog.sex === genderFilter;
+                
+                // Adoption status filter
+                let matchesAdoption = true;
+                if (adoptionFilter === "adopted") {
+                    matchesAdoption = !!dog.owner;
+                } else if (adoptionFilter === "not_adopted") {
+                    matchesAdoption = !dog.owner;
+                }
+                
+                // Adoption date range filter
+                let matchesAdoptionDate = true;
+                if (adoptionDateFrom && dog.adoptedDateObj) {
+                    const fromDate = new Date(adoptionDateFrom);
+                    matchesAdoptionDate = matchesAdoptionDate && dog.adoptedDateObj >= fromDate;
+                }
+                if (adoptionDateTo && dog.adoptedDateObj) {
+                    const toDate = new Date(adoptionDateTo);
+                    toDate.setHours(23, 59, 59, 999);
+                    matchesAdoptionDate = matchesAdoptionDate && dog.adoptedDateObj <= toDate;
+                }
+                
+                return matchesSearch && matchesGender && matchesAdoption && matchesAdoptionDate;
+            });
+        }
+
+        // Sorting function
+        function sortDogs(dogs) {
+            return dogs.sort((a, b) => {
+                if (sortKey === "name_of_dog") {
+                    return sortOrder === "asc" ? a.name_of_dog.localeCompare(b.name_of_dog) : b.name_of_dog.localeCompare(a.name_of_dog);
+                } else if (sortKey === "age") {
+                    return sortOrder === "asc" ? a.age - b.age : b.age - a.age;
+                } else {
+                    return sortOrder === "asc" ? a.id - b.id : b.id - a.id;
+                }
+            });
+        }
+
+        // Sort table by column
+        function sortTable(key) {
+            if (sortKey === key) {
+                sortOrder = sortOrder === "asc" ? "desc" : "asc";
+            } else {
+                sortKey = key;
+                sortOrder = "asc";
+            }
+            displayDogs();
+        }
+
+        // Calculate dog statistics
+        function getDogStatistics() {
+            const filteredDogs = applyFilters();
+            const totalDogs = filteredDogs.length;
+            const maleCount = filteredDogs.filter(dog => dog.sex === "Male").length;
+            const femaleCount = filteredDogs.filter(dog => dog.sex === "Female").length;
+            const adoptedCount = filteredDogs.filter(dog => dog.owner).length;
+            const averageAge = totalDogs > 0 
+                ? (filteredDogs.reduce((sum, dog) => sum + dog.age, 0) / totalDogs) 
+                : 0;
+            
+            // Adoption timeline (last 30 days)
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            const recentAdoptions = filteredDogs.filter(dog => 
+                dog.adoptedDateObj && dog.adoptedDateObj >= thirtyDaysAgo
+            ).length;
+            
+            // Age distribution
+            const ageGroups = {
+                puppy: filteredDogs.filter(dog => dog.age <= 2).length,
+                young: filteredDogs.filter(dog => dog.age > 2 && dog.age <= 5).length,
+                adult: filteredDogs.filter(dog => dog.age > 5 && dog.age <= 8).length,
+                senior: filteredDogs.filter(dog => dog.age > 8).length
+            };
+
+            return {
+                totalDogs,
+                maleCount,
+                femaleCount,
+                adoptedCount,
+                notAdoptedCount: totalDogs - adoptedCount,
+                adoptionRate: totalDogs > 0 ? (adoptedCount / totalDogs * 100).toFixed(1) : 0,
+                recentAdoptions,
+                averageAge,
+                ageGroups
+            };
+        }
+
+        // Generate PDF report
+        function generatePDFReport() {
+            if (typeof window.jspdf === 'undefined') {
+                alert("PDF library not loaded. Please try again later.");
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const stats = getDogStatistics();
+            const filteredDogs = applyFilters();
+            
+            // Report title
+            doc.setFontSize(20);
+            doc.setTextColor(40, 40, 40);
+            doc.text("Dog Shelter Report", 105, 15, { align: "center" });
+            
+            // Report date
+            doc.setFontSize(12);
+            doc.setTextColor(100, 100, 100);
+            doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 105, 22, { align: "center" });
+            
+            let yPosition = 30;
+            
+            // Summary statistics
+            doc.setFontSize(16);
+            doc.setTextColor(40, 40, 40);
+            doc.text("Summary Statistics", 14, yPosition);
+            yPosition += 10;
+            
+            doc.setFontSize(12);
+            doc.text(`• Total Dogs: ${stats.totalDogs}`, 20, yPosition);
+            yPosition += 8;
+            doc.text(`• Male Dogs: ${stats.maleCount} (${(stats.maleCount/stats.totalDogs*100).toFixed(1)}%)`, 20, yPosition);
+            yPosition += 8;
+            doc.text(`• Female Dogs: ${stats.femaleCount} (${(stats.femaleCount/stats.totalDogs*100).toFixed(1)}%)`, 20, yPosition);
+            yPosition += 8;
+            doc.text(`• Adopted Dogs: ${stats.adoptedCount} (${stats.adoptionRate}%)`, 20, yPosition);
+            yPosition += 8;
+            doc.text(`• Recent Adoptions (30 days): ${stats.recentAdoptions}`, 20, yPosition);
+            yPosition += 8;
+            doc.text(`• Average Age: ${stats.averageAge.toFixed(1)} years`, 20, yPosition);
+            yPosition += 15;
+            
+            // Age distribution
+            doc.setFontSize(16);
+            doc.text("Age Distribution", 14, yPosition);
+            yPosition += 10;
+            
+            doc.setFontSize(12);
+            doc.text(`• Puppies (0-2 years): ${stats.ageGroups.puppy}`, 20, yPosition);
+            yPosition += 8;
+            doc.text(`• Young (3-5 years): ${stats.ageGroups.young}`, 20, yPosition);
+            yPosition += 8;
+            doc.text(`• Adults (6-8 years): ${stats.ageGroups.adult}`, 20, yPosition);
+            yPosition += 8;
+            doc.text(`• Seniors (9+ years): ${stats.ageGroups.senior}`, 20, yPosition);
+            yPosition += 15;
+            
+            // Filter information
+            const searchQuery = document.getElementById("search").value;
+            const genderFilter = document.getElementById("filterGender").value;
+            const adoptionFilter = document.getElementById("filterAdoption").value;
+            const adoptionDateFrom = document.getElementById("filterAdoptionDateFrom").value;
+            const adoptionDateTo = document.getElementById("filterAdoptionDateTo").value;
+            const sortValue = document.getElementById("sortBy").value;
+            
+            if (searchQuery || genderFilter || adoptionFilter || adoptionDateFrom || adoptionDateTo || sortValue) {
+                doc.setFontSize(16);
+                doc.text("Applied Filters", 14, yPosition);
+                yPosition += 10;
+                
+                doc.setFontSize(12);
+                if (searchQuery) {
+                    doc.text(`• Search: "${searchQuery}"`, 20, yPosition);
+                    yPosition += 8;
+                }
+                if (genderFilter) {
+                    doc.text(`• Gender: ${genderFilter}`, 20, yPosition);
+                    yPosition += 8;
+                }
+                if (adoptionFilter) {
+                    doc.text(`• Adoption Status: ${adoptionFilter === "adopted" ? "Adopted" : "Not Adopted"}`, 20, yPosition);
+                    yPosition += 8;
+                }
+                if (adoptionDateFrom || adoptionDateTo) {
+                    const dateRange = [];
+                    if (adoptionDateFrom) dateRange.push(`After: ${new Date(adoptionDateFrom).toLocaleDateString()}`);
+                    if (adoptionDateTo) dateRange.push(`Before: ${new Date(adoptionDateTo).toLocaleDateString()}`);
+                    doc.text(`• Adoption Date: ${dateRange.join(", ")}`, 20, yPosition);
+                    yPosition += 8;
+                }
+                if (sortValue) {
+                    const sortText = {
+                        "name_asc": "Name (A-Z)",
+                        "name_desc": "Name (Z-A)",
+                        "age_asc": "Age (Low to High)",
+                        "age_desc": "Age (High to Low)"
+                    }[sortValue] || sortValue;
+                    doc.text(`• Sorted By: ${sortText}`, 20, yPosition);
+                    yPosition += 8;
+                }
+                yPosition += 10;
+            }
+            
+            // Dogs table
+            doc.setFontSize(16);
+            doc.text("Dog Records", 14, yPosition);
+            yPosition += 10;
+            
+            doc.autoTable({
+                startY: yPosition,
+                head: [['ID', 'Name', 'Sex', 'Age', 'Owner', 'Adopted Date']],
+                body: filteredDogs.map(dog => [
+                    dog.id,
+                    dog.name_of_dog,
+                    dog.sex,
+                    dog.age,
+                    dog.owner || "Not Adopted",
+                    dog.adopted_date ? new Date(dog.adopted_date).toLocaleDateString() : "N/A"
+                ]),
+                headStyles: {
+                    fillColor: [41, 128, 185],
+                    textColor: 255,
+                    fontStyle: 'bold'
+                },
+                alternateRowStyles: {
+                    fillColor: [245, 245, 245]
+                },
+                styles: {
+                    fontSize: 10,
+                    cellPadding: 3
+                },
+                columnStyles: {
+                    0: { cellWidth: 15 }, // ID
+                    1: { cellWidth: 30 }, // Name
+                    2: { cellWidth: 20 }, // Sex
+                    3: { cellWidth: 20 }, // Age
+                    4: { cellWidth: 60 }, // Owner
+                    5: { cellWidth: 30 }  // Adopted Date
+                }
+            });
+            // Add page numbers
+            const pageCount = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                doc.setFontSize(10);
+                doc.setTextColor(150);
+                doc.text(`Page ${i} of ${pageCount}`, doc.internal.pageSize.width - 25, doc.internal.pageSize.height - 10);
+            }
+            
+            // Save the PDF
+            doc.save(`dog-shelter-report-${new Date().toISOString().slice(0,10)}.pdf`);
+        }
+
+        // Pagination controls
+        document.getElementById("prevPage").addEventListener("click", () => {
+            if (currentPage > 1) {
+                currentPage--;
+                displayDogs();
+            }
+        });
+
+        document.getElementById("nextPage").addEventListener("click", () => {
+            if ((currentPage * rowsPerPage) < applyFilters().length) {
+                currentPage++;
+                displayDogs();
+            }
+        });
+
+        // Report download button
+        document.getElementById("downloadReport").addEventListener("click", generatePDFReport);
+
+        // Open Edit Modal
+        function editDog(dogId) {
+            let dog = dogsData.find(d => d.id === dogId);
+            document.getElementById("editDogId").value = dog.id;
+            document.getElementById("editName").value = dog.name_of_dog;
+            document.getElementById("editSex").value = dog.sex;
+            document.getElementById("editAge").value = dog.age;
+            document.getElementById("editOwner").value = dog.owner || "";
+            document.getElementById("editModal").classList.remove("hidden");
+        }
+
+        // Close Modal
+        function closeModal() {
+            document.getElementById("editModal").classList.add("hidden");
+        }
+
+        // Save Updated Dog Details
+        async function saveDog() {
+            let dogId = document.getElementById("editDogId").value;
+            let updatedData = {
+                name_of_dog: document.getElementById("editName").value,
+                sex: document.getElementById("editSex").value,
+                age: document.getElementById("editAge").value,
+                owner: document.getElementById("editOwner").value || null
+            };
+
+            await fetch(`/dogs/update/${dogId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(updatedData)
+            });
+
+            closeModal();
+            fetchDogs();
+        }
+
+        // Delete Dog
+        async function deleteDog(id) {
+            if (confirm("Are you sure you want to delete this dog record?")) {
+                await fetch(`/dogs/delete/${id}`, { method: "DELETE" });
+                fetchDogs();
+            }
+        }
+
+        // Event listeners for filters
+        document.getElementById("search").addEventListener("input", displayDogs);
+        document.getElementById("filterGender").addEventListener("change", displayDogs);
+        document.getElementById("filterAdoption").addEventListener("change", displayDogs);
+        document.getElementById("filterAdoptionDateFrom").addEventListener("change", displayDogs);
+        document.getElementById("filterAdoptionDateTo").addEventListener("change", displayDogs);
+        document.getElementById("sortBy").addEventListener("change", (e) => {
+            const [key, order] = e.target.value.split("_");
+            sortKey = key;
+            sortOrder = order;
+            displayDogs();
+        });
+
+        // Initialize
+        fetchDogs();
+    </script>
+
+</body>
+</html>

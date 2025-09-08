@@ -1,0 +1,20 @@
+<h2>List of Donors</h2>
+<ul id="donorList"></ul>
+
+<script>
+async function getDonors() {
+    const response = await fetch("/donors");
+    const data = await response.json();
+    
+    let list = "";
+    data.forEach(donor => {
+        list += `<li>${donor.name} - $${donor.amount}</li>`;
+    });
+
+    document.getElementById("donorList").innerHTML = list;
+}
+
+getDonors();
+</script>
+
+

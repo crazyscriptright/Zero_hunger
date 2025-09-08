@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Contact Us</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white">
+    
+    <!-- Contact Section -->
+    <section id="contact" class="py-24 px-6 flex flex-col items-center justify-center min-h-screen">
+        <div class="text-center mb-10">
+            <h2 class="text-4xl font-bold text-yellow-400">Get Involved</h2>
+            <p class="text-lg text-gray-300 mt-4">Reach out to volunteer, donate, or adopt a pet.</p>
+        </div>
+        
+        <div class="w-full max-w-lg bg-gray-800 p-8 rounded-lg shadow-lg">
+            <form id="feedback-form">
+                <label class="block text-gray-300 text-left mb-2">Full Name</label>
+                <input type="text" id="name" class="w-full p-3 mb-4 rounded-lg bg-gray-700 border-none focus:ring-2 focus:ring-yellow-400" placeholder="Your Name" required>
+                
+                <label class="block text-gray-300 text-left mb-2">Email</label>
+                <input type="email" id="email" class="w-full p-3 mb-4 rounded-lg bg-gray-700 border-none focus:ring-2 focus:ring-yellow-400" placeholder="Your Email" required>
+                
+                <label class="block text-gray-300 text-left mb-2">Message</label>
+                <textarea id="message" class="w-full p-3 h-32 rounded-lg bg-gray-700 border-none focus:ring-2 focus:ring-yellow-400" placeholder="Your Message" required></textarea>
+                
+                <button type="submit" class="mt-4 w-full bg-yellow-400 py-3 rounded-lg font-bold hover:bg-yellow-500 transition duration-300">Send Message</button>
+            </form>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="text-center py-6 bg-gray-800">
+        <p class="text-gray-400">&copy; 2025 Zero Hungry. All rights reserved.</p>
+    </footer>
+
+    <script>
+        document.getElementById("feedback-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            
+            const feedbackData = {
+                name: document.getElementById("name").value,
+                email: document.getElementById("email").value,
+                message: document.getElementById("message").value
+            };
+            
+            try {
+                const response = await fetch("http://127.0.0.1:8000/feedback/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(feedbackData)
+                });
+
+                const result = await response.json();
+                alert("Feedback submitted successfully!");
+            } catch (error) {
+                console.error("Error submitting feedback:", error);
+                alert("There was an error submitting your feedback.");
+            }
+        });
+    </script>
+    <script src="/static/js/loginCheck.js"></script>
+</body>
+</html>

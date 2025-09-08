@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adoption Requests</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="container mx-auto p-6">
+        <h1 class="text-3xl font-bold text-center mb-8">🐾 Adoption Requests 🐾</h1>
+
+        <!-- Table for Adoption Requests -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <table id="adoptionRequestsTable" class="w-full">
+                <thead class="bg-gray-200">
+                    <tr>
+                        <th class="p-3 text-left">Dog Name</th>
+                        <th class="p-3 text-left">Owner Name</th>
+                        <th class="p-3 text-left">Phone</th>
+                        <th class="p-3 text-left">Address</th>
+                        <th class="p-3 text-left">Status</th>
+                        <th class="p-3 text-left">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="adoptionRequestsTableBody" class="divide-y divide-gray-200">
+                    <!-- Rows will be dynamically inserted here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const AdoptionRequestsApp = {
+            fetchAdoptionRequests: async function () {
+                try {
+                    const response = await fetch("/admin/adoption-requests");
+                    const data = await response.json();
+                    this.renderAdoptionRequests(data.adoption_requests);
+                } catch (error) {
+                    console.error("Error fetching adoption requests:", error);
+                    alert("Failed to fetch adoption requests. Please try again.");
+                }
+            },
+
+            renderAdoptionRequests: function (requests) {
+                const tableBody = document.getElementById("adoptionRequestsTableBody");
+                tableBody.innerHTML = "";
+
+                if (requests.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="py-4 text-center text-gray-500">No adoption requests found.</td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                requests.forEach((request) => {
+                    const row = `
+                        <tr class="hover:bg-gray-50 transition-all duration-200">
+                            <td class="p-3">${request.name_of_dog}</td>
+                            <td class="p-3">${request.owner_full_name}</td>
+                            <td class="p-3">${request.phone_number}</td>
+                            <td class="p-3">${request.address}</td>
+                            <td class="p-3">${request.status}</td>
+                            <td class="p-3">
+                                <select onchange="AdoptionRequestsApp.updateAdoptionStatus(${request.id}, this.value)" class="p-2 border rounded-lg focus:outline-none">
+                                    <option value="Adopted" ${request.status === "Adopted" ? "selected" : ""}>Options</option>
+                                    <option value="Available" ${request.status === "Available" ? "selected" : ""}>Available</option>
+                                    <option value="Adopted" ${request.status === "Adopted" ? "selected" : ""}>Adopted</option>
+                                </select>
+                            </td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+            },
+
+            updateAdoptionStatus: async function (dogId, status) {
+                try {
+                    const response = await fetch(`/admin/adoption-requests/update-status/${dogId}`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ status }),
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        alert(data.message);
+                        this.fetchAdoptionRequests(); // Refresh the table
+                    } else {
+                        const errorData = await response.json();
+                        alert(errorData.detail || "Failed to update status.");
+                    }
+                } catch (error) {
+                    console.error("Error updating adoption status:", error);
+                    alert("An error occurred while updating the status.");
+                }
+            },
+        };
+
+        // Fetch adoption requests on page load
+        document.addEventListener("DOMContentLoaded", () => {
+            AdoptionRequestsApp.fetchAdoptionRequests();
+        });
+    </script>
+</body>
+</html>

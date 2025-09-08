@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donation Spending Records</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        input[type="date"] {
+            background-color: white;
+            color: #333;
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(0.5);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="container mx-auto p-6">
+        <h1 class="text-2xl font-bold mb-4">Donation Spending Records</h1>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6" id="summaryCardsSpending">
+            <!-- Will be populated by JavaScript -->
+        </div>
+
+        <!-- Search, Filter and Download Controls -->
+        <div class="flex flex-col md:flex-row gap-4 mb-4 items-end">
+            <div class="flex flex-col md:flex-row gap-4 w-full">
+                <input type="text" id="searchSpending" placeholder="Search by purpose" class="p-2 border rounded w-full">
+                <select id="sortSpending" class="p-2 border rounded w-full">
+                    <option value="id">Sort by ID</option>
+                    <option value="amount">Sort by Amount</option>
+                    <option value="time">Sort by Date</option>
+                </select>
+                <input type="date" id="filterDateFromSpending" class="p-2 border rounded w-full" placeholder="From Date">
+                <input type="date" id="filterDateToSpending" class="p-2 border rounded w-full" placeholder="To Date">
+            </div>
+            <button id="downloadPDFSpending" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 w-full md:w-auto whitespace-nowrap">
+                Download PDF Report
+            </button>
+        </div>
+
+        <!-- Table -->
+        <div class="overflow-x-auto bg-white shadow-md rounded-lg">
+            <table class="min-w-full w-full border-collapse">
+                <thead class="bg-gray-200">
+                    <tr>
+                        <th class="py-2 px-4 text-left">ID</th>
+                        <th class="py-2 px-4 text-left">Amount (₹)</th>
+                        <th class="py-2 px-4 text-left">Purpose</th>
+                        <th class="py-2 px-4 text-left">Date</th>
+                    </tr>
+                </thead>
+                <tbody id="spendingTable"></tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex justify-between items-center mt-4">
+            <button id="prevPageSpending" class="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50" disabled>Previous</button>
+            <span id="pageIndicatorSpending" class="text-lg font-semibold">Page 1</span>
+            <button id="nextPageSpending" class="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50">Next</button>
+        </div>
+    </div>
+
+    <script>
+        // Namespace for spending functionality
+        const SpendingApp = {
+            data: {
+                spendings: [],
+                filteredSpendings: [],
+                currentPage: 1,
+                rowsPerPage: 5,
+                spendingStats: null
+            },
+            
+            init: function() {
+                this.bindEvents();
+                this.fetchSpendingRecords();
+            },
+            
+            bindEvents: function() {
+                document.getElementById("prevPageSpending").addEventListener("click", () => this.prevPage());
+                document.getElementById("nextPageSpending").addEventListener("click", () => this.nextPage());
+                document.getElementById("searchSpending").addEventListener("input", () => this.filterSpendings());
+                document.getElementById("sortSpending").addEventListener("change", () => this.filterSpendings());
+                document.getElementById("filterDateFromSpending").addEventListener("change", () => this.filterSpendings());
+                document.getElementById("filterDateToSpending").addEventListener("change", () => this.filterSpendings());
+                document.getElementById("downloadPDFSpending").addEventListener("click", () => this.downloadPDFReport());
+            },
+            
+            fetchSpendingRecords: async function() {
+                try {
+                    const response = await fetch("/donations/spending");
+                    const data = await response.json();
+                    this.data.spendings = data.spendings.map(s => ({
+                        ...s,
+                        dateObj: new Date(s.time) // Create Date object for easier comparison
+                    }));
+                    this.data.filteredSpendings = [...this.data.spendings];
+                    this.calculateSpendingStats();
+                    this.renderSummaryCards();
+                    this.renderSpendingTable();
+                } catch (error) {
+                    console.error("Error fetching spending records:", error);
+                }
+            },
+            
+            calculateSpendingStats: function() {
+                const filtered = this.data.filteredSpendings;
+                const totalSpending = filtered.reduce((sum, s) => sum + s.amount, 0);
+                const avgSpending = filtered.length > 0 ? totalSpending / filtered.length : 0;
+                
+                // Group by purpose
+                const spendingByPurpose = filtered.reduce((acc, s) => {
+                    acc[s.purpose] = (acc[s.purpose] || 0) + s.amount;
+                    return acc;
+                }, {});
+                
+                // Get top purposes
+                const topPurposes = Object.entries(spendingByPurpose)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 3)
+                    .map(([purpose, amount]) => ({ purpose, amount }));
+                
+                this.data.spendingStats = {
+                    totalSpending,
+                    avgSpending,
+                    count: filtered.length,
+                    topPurposes
+                };
+            },
+            
+            renderSummaryCards: function() {
+                const stats = this.data.spendingStats;
+                if (!stats) return;
+                
+                const container = document.getElementById("summaryCardsSpending");
+                container.innerHTML = [
+                    { 
+                        title: "Total Spending", 
+                        value: `INR ${stats.totalSpending.toLocaleString()}`,
+                        bg: "bg-blue-500",
+                        description: `Across ${stats.count} records`
+                    },
+                    { 
+                        title: "Average Spending", 
+                        value: `INR ${stats.avgSpending.toFixed(2)}`,
+                        bg: "bg-blue-400",
+                        description: "Per spending record"
+                    },
+                    { 
+                        title: "Top Purpose", 
+                        value: stats.topPurposes[0]?.purpose || "N/A",
+                        bg: "bg-blue-300",
+                        description: stats.topPurposes[0] ? `INR ${stats.topPurposes[0].amount.toLocaleString()}` : ""
+                    }
+                ].map(card => `
+                    <div class="${card.bg} text-white p-4 rounded-lg shadow">
+                        <h3 class="font-bold text-lg">${card.title}</h3>
+                        <p class="text-2xl">${card.value}</p>
+                        <p class="text-sm opacity-80">${card.description}</p>
+                    </div>
+                `).join("");
+            },
+            
+            renderSpendingTable: function() {
+                const tableBody = document.getElementById("spendingTable");
+                const start = (this.data.currentPage - 1) * this.data.rowsPerPage;
+                const end = start + this.data.rowsPerPage;
+                const paginatedData = this.data.filteredSpendings.slice(start, end);
+                
+                tableBody.innerHTML = paginatedData.length === 0 ? 
+                    `<tr><td colspan="4" class="py-4 text-center">No spending records found</td></tr>` :
+                    paginatedData.map(spend => `
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="py-2 px-4">${spend.id}</td>
+                            <td class="py-2 px-4 text-red-600 font-bold">INR ${spend.amount.toLocaleString()}</td>
+                            <td class="py-2 px-4">${spend.purpose}</td>
+                            <td class="py-2 px-4">${moment(spend.time).format('DD MMM YYYY, hh:mm A')}</td>
+                        </tr>
+                    `).join("");
+                
+                // Update pagination controls
+                document.getElementById("pageIndicatorSpending").textContent = `Page ${this.data.currentPage}`;
+                document.getElementById("prevPageSpending").disabled = this.data.currentPage === 1;
+                document.getElementById("nextPageSpending").disabled = end >= this.data.filteredSpendings.length;
+                
+                // Recalculate stats whenever table is rendered
+                this.calculateSpendingStats();
+                this.renderSummaryCards();
+            },
+            
+            filterSpendings: function() {
+                const query = document.getElementById("searchSpending").value.toLowerCase();
+                const dateFrom = document.getElementById("filterDateFromSpending").value;
+                const dateTo = document.getElementById("filterDateToSpending").value;
+                const sortBy = document.getElementById("sortSpending").value;
+                
+                // Apply filters
+                let filtered = this.data.spendings.filter(s => {
+                    // Text search filter
+                    const matchesSearch = query ? s.purpose.toLowerCase().includes(query) : true;
+                    
+                    // Date range filter
+                    let matchesDate = true;
+                    if (dateFrom) {
+                        const fromDate = new Date(dateFrom);
+                        matchesDate = matchesDate && s.dateObj >= fromDate;
+                    }
+                    if (dateTo) {
+                        const toDate = new Date(dateTo);
+                        toDate.setHours(23, 59, 59, 999); // Include entire end day
+                        matchesDate = matchesDate && s.dateObj <= toDate;
+                    }
+                    
+                    return matchesSearch && matchesDate;
+                });
+                
+                // Apply sorting
+                filtered.sort((a, b) => {
+                    if (sortBy === "id") return a.id - b.id;
+                    if (sortBy === "amount") return a.amount - b.amount;
+                    if (sortBy === "time") return a.dateObj - b.dateObj;
+                    return 0;
+                });
+                
+                this.data.filteredSpendings = filtered;
+                this.data.currentPage = 1;
+                this.renderSpendingTable();
+            },
+            
+            prevPage: function() {
+                if (this.data.currentPage > 1) {
+                    this.data.currentPage--;
+                    this.renderSpendingTable();
+                }
+            },
+            
+            nextPage: function() {
+                if (this.data.currentPage * this.data.rowsPerPage < this.data.filteredSpendings.length) {
+                    this.data.currentPage++;
+                    this.renderSpendingTable();
+                }
+            },
+            
+            downloadPDFReport: function() {
+                if (typeof window.jspdf === 'undefined') {
+                    console.error("jsPDF library not loaded!");
+                    alert("PDF generation failed: Library not loaded. Please try again.");
+                    return;
+                }
+                
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const stats = this.data.spendingStats;
+                const filters = this.getCurrentFilters();
+                
+                // Title Section
+                doc.setFontSize(18);
+                doc.setTextColor(41, 128, 185);
+                doc.text('Spending Records Report', 105, 15, { align: 'center' });
+                
+                doc.setFontSize(10);
+                doc.setTextColor(100);
+                doc.text(`Generated on: ${moment().format('DD MMM YYYY, hh:mm A')}`, 105, 22, { align: 'center' });
+                
+                let yPosition = 30;
+                
+                // Summary Section
+                doc.setFontSize(14);
+                doc.setTextColor(0, 0, 0);
+                doc.text('Spending Summary', 14, yPosition);
+                yPosition += 8;
+                
+                doc.setFontSize(12);
+                doc.text(`• Total Spending: INR ${stats.totalSpending.toLocaleString()} (${stats.count} records)`, 20, yPosition);
+                yPosition += 8;
+                doc.text(`• Average Spending: INR ${stats.avgSpending.toFixed(2)} per record`, 20, yPosition);
+                yPosition += 12;
+                
+                // Top Purposes
+                doc.setFontSize(14);
+                doc.text('Top Spending Purposes:', 14, yPosition);
+                yPosition += 8;
+                
+                doc.setFontSize(12);
+                stats.topPurposes.forEach((purpose, index) => {
+                    doc.text(`${index + 1}. ${purpose.purpose}: INR ${purpose.amount.toLocaleString()}`, 20, yPosition);
+                    yPosition += 8;
+                });
+                yPosition += 10;
+                
+                // Filter Info
+                if (filters) {
+                    doc.setFontSize(12);
+                    doc.text(`Filters applied: ${filters}`, 14, yPosition);
+                    yPosition += 15;
+                }
+                
+                // Spending Records Table
+                doc.autoTable({
+                    startY: yPosition,
+                    head: [['ID', 'Amount', 'Purpose', 'Date']],
+                    body: this.data.filteredSpendings.map(s => [
+                        s.id,
+                        `INR ${s.amount.toLocaleString()}`,
+                        s.purpose,
+                        moment(s.time).format('DD MMM YYYY, hh:mm A')
+                    ]),
+                    headStyles: {
+                        fillColor: [41, 128, 185],
+                        textColor: 255,
+                        fontStyle: 'bold'
+                    },
+                    alternateRowStyles: {
+                        fillColor: [245, 245, 245]
+                    },
+                    margin: { top: yPosition },
+                    styles: {
+                        fontSize: 10,
+                        cellPadding: 3,
+                        overflow: 'linebreak'
+                    },
+                    columnStyles: {
+                        1: { cellWidth: 25 }  // Amount column width
+                    }
+                });
+                
+                // Add page numbers
+                const pageCount = doc.internal.getNumberOfPages();
+                for(let i = 1; i <= pageCount; i++) {
+                    doc.setPage(i);
+                    doc.setFontSize(10);
+                    doc.setTextColor(150);
+                    doc.text(`Page ${i} of ${pageCount}`, doc.internal.pageSize.width - 30, doc.internal.pageSize.height - 10);
+                }
+                
+                // Save the PDF
+                doc.save(`spending-report-${moment().format('YYYY-MM-DD')}.pdf`);
+            },
+            
+            getCurrentFilters: function() {
+                const filters = [];
+                const search = document.getElementById("searchSpending").value;
+                const dateFrom = document.getElementById("filterDateFromSpending").value;
+                const dateTo = document.getElementById("filterDateToSpending").value;
+                
+                if (search) filters.push(`Search: "${search}"`);
+                if (dateFrom) filters.push(`From: ${moment(dateFrom).format('DD MMM YYYY')}`);
+                if (dateTo) filters.push(`To: ${moment(dateTo).format('DD MMM YYYY')}`);
+                
+                return filters.join(", ");
+            }
+        };
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => SpendingApp.init());
+    </script>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Donate to Feed Stray Dogs</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <style>
+    .btn-primary {
+      background: linear-gradient(135deg, #4F46E5, #3B82F6);
+      transition: transform 0.2s ease-in-out;
+    }
+    .btn-primary:hover {
+      transform: scale(1.05);
+      background: linear-gradient(135deg, #4338CA, #2563EB);
+    }
+    /* Hide increment and decrement buttons for number input */
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 flex items-center justify-center min-h-screen px-6">
+  <script>
+    // Check if the user is logged in
+    document.addEventListener("DOMContentLoaded", function () {
+      const username = sessionStorage.getItem("username");
+      if (!username) {
+        window.location.href = "/login";
+      }
+    });
+  </script>
+  <div class="container mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 bg-white p-10 rounded-lg shadow-2xl max-w-4xl animate-fadeIn">
+    
+    <!-- Left Side: Donation Form -->
+    <div>
+      <h2 class="text-4xl font-bold text-gray-900 text-center">🐶 Feed a Stray Dog</h2>
+      <p class="text-gray-600 text-center mt-3">Your kindness can change lives. Make a difference today! ❤️</p>
+      
+      <form id="donationForm" class="mt-6">
+        <div class="mb-4">
+          <label for="name" class="block text-gray-800 font-medium mb-2">Your Name</label>
+          <input type="text" id="name" name="name" class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Enter your name" required>
+        </div>
+
+        <div class="mb-4">
+          <label for="email" class="block text-gray-800 font-medium mb-2">Your Email</label>
+          <input type="email" id="email" name="email" class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Enter your email" required>
+        </div>
+
+        <div class="mb-4">
+          <label for="amount" class="block text-gray-800 font-medium mb-2">Donation Amount (₹)</label>
+          <input type="number" id="amount" name="amount" class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Enter amount" required min="1">
+        </div>
+
+        <button type="submit" id="donateBtn" class="w-full btn-primary text-white py-3 rounded-lg text-lg font-bold shadow-md">
+          🐾 Donate Now
+        </button>
+
+        <p id="message" class="text-center mt-4 text-gray-700 font-semibold"></p>
+      </form>
+    </div>
+
+    <!-- Right Side: Information & Image -->
+    <div class="flex flex-col justify-center items-center text-center">
+      <img id="donationImage" src="/static/feeding.jpg" alt="Feeding a stray dog" class="w-72 rounded-lg shadow-lg mb-4 border-4 border-yellow-400">
+      
+      <h3 class="text-2xl font-bold text-gray-900">🌟 Every Meal Matters</h3>
+      <p class="text-gray-700 mt-2 leading-relaxed">
+        Over <strong>30 million stray dogs</strong> struggle to find food daily. You can be their hero. ❤️
+      </p>
+
+      <div class="bg-yellow-100 p-5 rounded-lg shadow-md mt-4 w-full max-w-sm animate-slideIn">
+        <h4 class="text-lg font-semibold text-gray-800">📊 Impact of Your Donation:</h4>
+        <ul class="list-disc pl-5 mt-2 text-gray-700 text-left">
+          <li>🥣 <strong>₹500</strong> provides a day's meal for 5 dogs.</li>
+          <li>🐕 <strong>₹2000</strong> feeds a stray for a week.</li>
+          <li>🏠 <strong>₹5000</strong> helps provide shelter & medical care.</li>
+        </ul>
+      </div>
+
+      <blockquote class="mt-6 italic text-gray-600 max-w-sm">
+        "One small meal, one big change. You have the power to transform their lives."
+      </blockquote>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('donationForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const form = e.target;
+        const donateBtn = document.getElementById("donateBtn");
+        const message = document.getElementById("message");
+
+        donateBtn.disabled = true;
+        donateBtn.textContent = "Processing...";
+
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        data.amount = Number(data.amount);
+
+        try {
+            const response = await fetch('/create-checkout-session/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) throw result;
+
+            if (result.url) {
+                window.location.href = result.url;
+            } else {
+                throw new Error("Stripe session URL is undefined!");
+            }
+
+        } catch (error) {
+            message.textContent = error.detail || "⚠️ Error processing donation!";
+            message.classList.add("text-red-600");
+        } finally {
+            donateBtn.disabled = false;
+            donateBtn.textContent = "🐾 Donate Now";
+        }
+    });
+
+    gsap.from(".container", { opacity: 0, y: 50, duration: 1, ease: "power2.out" });
+    gsap.from("#donationImage", { opacity: 0, scale: 0.8, duration: 1.2, ease: "elastic.out(1, 0.5)", delay: 0.5 });
+  </script>
+</body>
+</html>

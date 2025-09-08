@@ -1,0 +1,90 @@
+<!-- Sidebar -->
+<div class="h-screen w-64 bg-gray-800 text-white fixed top-0 left-0 transform -translate-x-full transition-transform duration-300 ease-in-out shadow-lg z-40" id="sidebar">
+    <!-- Logo & Admin Panel Title -->
+    <div class="flex items-center space-x-4 p-6 border-b border-gray-700">
+        <i class="fa-solid fa-user-shield text-3xl text-blue-400"></i>
+        <a href="/admin#home" class="text-lg font-bold hover:underline">Admin Panel</a>
+    </div>
+    
+        
+    <!-- Navigation Links -->
+    <ul class="p-4 space-y-4">
+        <li>
+            <a href="/admin#analytics" class="flex items-center space-x-2 text-gray-300 hover:text-blue-400 transition">
+                <i class="fa-solid fa-chart-bar text-lg text-blue-400"></i>
+                <span>Analytics</span>
+            </a>
+        </li>
+        <li>
+            <a href="#rescue" class="flex items-center space-x-2 text-gray-300 hover:text-red-400 transition">
+                <i class="fa-solid fa-hand-holding-heart text-lg text-red-400"></i>
+                <span>Rescue Requests</span>
+            </a>
+        </li>
+        <li>
+            <a href="/admin#donation" class="flex items-center space-x-2 text-gray-300 hover:text-yellow-400 transition">
+                <i class="fa-solid fa-gift text-lg text-yellow-400"></i>
+                <span>Donations</span>
+            </a>
+        </li>
+        <li>
+            <a href="/admin#feedback" class="flex items-center space-x-2 text-gray-300 hover:text-purple-400 transition">
+                <i class="fa-solid fa-comments text-lg text-purple-400"></i>
+                <span>Feedback</span>
+            </a>
+        </li>
+        <li>
+            <a href="/admin#spending" class="flex items-center space-x-2 text-gray-300 hover:text-green-400 transition">
+                <i class="fa-solid fa-indian-rupee-sign text-lg text-green-400"></i>
+                <span>Amount Update</span>
+            </a>            
+        </li>
+
+    </ul>
+</div>
+
+<!-- Overlay (covers the screen when sidebar is open) -->
+<div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 hidden transition-opacity duration-300 z-30"></div>
+
+<!-- Sidebar Toggle Button (Hamburger) -->
+<button id="sidebar-toggle" class="fixed top-4 left-4 bg-gray-700 p-2 rounded text-white z-50 hover:bg-gray-600 transition duration-200">
+    ☰
+</button>
+
+<script>
+    const sidebar = document.getElementById("sidebar");
+    const toggleButton = document.getElementById("sidebar-toggle");
+    const overlay = document.getElementById("sidebar-overlay");
+
+    // Function to toggle sidebar visibility
+    function toggleSidebar() {
+        sidebar.classList.toggle("-translate-x-full");
+        overlay.classList.toggle("hidden");
+        overlay.classList.toggle("opacity-100");
+
+        // Hide hamburger when sidebar is open
+        if (sidebar.classList.contains("-translate-x-full")) {
+            toggleButton.style.display = "block";
+        } else {
+            toggleButton.style.display = "none";
+        }
+    }
+
+    // Function to close sidebar when clicking outside
+    function closeSidebar(event) {
+        if (!sidebar.contains(event.target) && !toggleButton.contains(event.target)) {
+            sidebar.classList.add("-translate-x-full");
+            overlay.classList.add("hidden");
+            toggleButton.style.display = "block"; // Show hamburger when sidebar is closed
+        }
+    }
+
+    // Toggle Sidebar on Button Click
+    toggleButton.addEventListener("click", toggleSidebar);
+
+    // Close Sidebar when clicking outside
+    overlay.addEventListener("click", closeSidebar);
+</script>
+
+<!-- FontAwesome for Icons -->
+<script src="https://kit.fontawesome.com/YOUR_KIT_CODE.js" crossorigin="anonymous"></script>

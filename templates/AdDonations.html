@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donations List</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <!-- Load jsPDF from correct CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        input[type="date"] {
+            background-color: white;
+            color: #333;
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(0.5);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="container mx-auto p-6">
+        <h1 class="text-2xl font-bold mb-4">Donations List</h1>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6" id="summaryCards"></div>
+
+        <!-- Controls -->
+        <div class="flex flex-col md:flex-row gap-4 mb-4 items-end">
+            <div class="flex flex-col md:flex-row gap-4 w-full">
+                <input type="text" id="searchDonations" placeholder="Search by name or email" class="p-2 border rounded w-full">
+                <select id="sortDonations" class="p-2 border rounded w-full">
+                    <option value="id">Sort by ID</option>
+                    <option value="name">Sort by Name</option>
+                    <option value="amount">Sort by Amount</option>
+                    <option value="date">Sort by Date</option>
+                </select>
+                <input type="date" id="filterDateFrom" class="p-2 border rounded w-full" placeholder="From Date">
+                <input type="date" id="filterDateTo" class="p-2 border rounded w-full" placeholder="To Date">
+            </div>
+            <button id="downloadPDF" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 w-full md:w-auto whitespace-nowrap">
+                Download PDF Report
+            </button>
+        </div>
+
+        <!-- Table -->
+        <div class="overflow-x-auto bg-white shadow-md rounded-lg">
+            <table class="min-w-full w-full border-collapse">
+                <thead class="bg-gray-200">
+                    <tr>
+                        <th class="py-2 px-4 text-left">ID</th>
+                        <th class="py-2 px-4 text-left">Name</th>
+                        <th class="py-2 px-4 text-left">Email</th>
+                        <th class="py-2 px-4 text-left">Amount (₹)</th>
+                        <th class="py-2 px-4 text-left">Date</th>
+                    </tr>
+                </thead>
+                <tbody id="donationsTable"></tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="mt-4 flex justify-between items-center">
+            <button id="prevPageDonations" class="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50" disabled>Previous</button>
+            <span id="pageIndicatorDonations" class="text-lg font-semibold">Page 1</span>
+            <button id="nextPageDonations" class="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50">Next</button>
+        </div>
+    </div>
+
+    <script>
+        // Main application object
+        const DonationsApp = {
+            data: {
+                donations: [],
+                filteredDonations: [],
+                currentPage: 1,
+                rowsPerPage: 5,
+                summary: null
+            },
+            
+            init: function() {
+                this.bindEvents();
+                this.fetchDonations();
+                this.fetchSummary();
+            },
+            
+            bindEvents: function() {
+                // Pagination
+                document.getElementById("prevPageDonations").addEventListener("click", () => this.prevPage());
+                document.getElementById("nextPageDonations").addEventListener("click", () => this.nextPage());
+                
+                // Filters and sorting
+                document.getElementById("searchDonations").addEventListener("input", () => this.filterDonations());
+                document.getElementById("sortDonations").addEventListener("change", (e) => this.sortDonations(e.target.value));
+                document.getElementById("filterDateFrom").addEventListener("change", () => this.filterDonations());
+                document.getElementById("filterDateTo").addEventListener("change", () => this.filterDonations());
+                
+                // PDF Download - Fixed this part
+                document.getElementById("downloadPDF").addEventListener("click", () => {
+                    this.generatePDF();
+                });
+            },
+            
+            // [Previous methods remain the same until generatePDF...]
+            
+            generatePDF: function () {
+                // Check if jsPDF is loaded correctly
+                if (typeof window.jspdf === 'undefined') {
+                    console.error("jsPDF library not loaded!");
+                    alert("PDF generation failed: Library not loaded. Please try again.");
+                    return;
+                }
+
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+
+                // Title
+                doc.setFontSize(18);
+                doc.setTextColor(41, 128, 185);
+                doc.text('Donations Report', 105, 15, { align: 'center' });
+
+                // Generation date
+                doc.setFontSize(10);
+                doc.setTextColor(100);
+                doc.text(`Generated on: ${moment().format('DD MMM YYYY, hh:mm A')}`, 105, 22, { align: 'center' });
+
+                let yPosition = 30;
+
+                // Dynamically calculate summary statistics based on filtered donations
+                const filteredDonations = this.data.filteredDonations;
+                const totalDonations = filteredDonations.length;
+                const totalAmount = filteredDonations.reduce((sum, donation) => sum + donation.amount, 0);
+                const avgDonation = totalDonations > 0 ? (totalAmount / totalDonations).toFixed(2) : 0;
+
+                // Calculate top donors
+                const topDonors = [...filteredDonations]
+                    .sort((a, b) => b.amount - a.amount) // Sort by amount in descending order
+                    .slice(0, 5); // Take the top 5 donors
+
+                // Summary Section
+                doc.setFontSize(14);
+                doc.setTextColor(0, 0, 0);
+                doc.text('Summary Statistics', 14, yPosition);
+                yPosition += 10;
+
+                doc.setFontSize(12);
+                doc.text(`• Total Count: ${totalDonations}`, 20, yPosition);
+                yPosition += 8;
+                doc.text(`• Total Amount: INR ${totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, 20, yPosition);
+                yPosition += 8;
+                doc.text(`• Average Donation: INR ${avgDonation.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, 20, yPosition);
+                yPosition += 15;
+
+                // Top Donors Section
+                if (topDonors.length > 0) {
+                    doc.setFontSize(14);
+                    doc.text('Top Donors:', 14, yPosition);
+                    yPosition += 10;
+
+                    doc.setFontSize(12);
+                    topDonors.forEach((donor, index) => {
+                        doc.text(`${index + 1}. ${donor.name}: INR ${donor.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, 20, yPosition);
+                        yPosition += 8;
+                    });
+                    yPosition += 10;
+                } else {
+                    doc.setFontSize(12);
+                    doc.text('No top donors available for the filtered data.', 20, yPosition);
+                    yPosition += 10;
+                }
+
+                // Filter Info
+                const filters = this.getCurrentFilters();
+                if (filters) {
+                    doc.setFontSize(12);
+                    doc.text(`Filters applied: ${filters}`, 14, yPosition);
+                    yPosition += 15;
+                }
+
+                // Table
+                doc.autoTable({
+                    startY: yPosition,
+                    head: [['ID', 'Name', 'Email', 'Amount', 'Date']],
+                    body: filteredDonations.map(d => [
+                        d.id,
+                        d.name,
+                        d.email,
+                        `INR ${d.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+                        moment(d.date).format('DD MMM YYYY')
+                    ]),
+                    headStyles: {
+                        fillColor: [41, 128, 185],
+                        textColor: 255,
+                        fontStyle: 'bold'
+                    },
+                    alternateRowStyles: {
+                        fillColor: [245, 245, 245]
+                    },
+                    margin: { top: 10 },
+                    styles: {
+                        fontSize: 10,
+                        cellPadding: 3,
+                        overflow: 'linebreak'
+                    },
+                    didDrawPage: function (data) {
+                        // Reset yPosition for new page
+                        yPosition = data.cursor.y + 10;
+                    }
+                });
+
+                // Save the PDF
+                doc.save(`donations-report-${moment().format('YYYY-MM-DD')}.pdf`);
+            },
+            getCurrentFilters: function() {
+                const filters = [];
+                const search = document.getElementById("searchDonations").value;
+                const dateFrom = document.getElementById("filterDateFrom").value;
+                const dateTo = document.getElementById("filterDateTo").value;
+                
+                if (search) filters.push(`Search: "${search}"`);
+                if (dateFrom) filters.push(`From: ${moment(dateFrom).format('DD MMM YYYY')}`);
+                if (dateTo) filters.push(`To: ${moment(dateTo).format('DD MMM YYYY')}`);
+                
+                return filters.join(", ");
+            },
+            
+            // [Rest of your existing methods...]
+            fetchDonations: async function() {
+                try {
+                    const response = await fetch("/viewDonations");
+                    const data = await response.json();
+                    this.data.donations = data.donations.map(d => ({
+                        ...d,
+                        dateObj: new Date(d.date)
+                    }));
+                    this.data.filteredDonations = [...this.data.donations];
+                    this.renderDonationsTable();
+                } catch (error) {
+                    console.error("Error fetching donations:", error);
+                }
+            },
+            
+            fetchSummary: async function() {
+                try {
+                    const response = await fetch("/donations/summary");
+                    this.data.summary = await response.json();
+                    this.renderSummaryCards();
+                } catch (error) {
+                    console.error("Error fetching summary:", error);
+                }
+            },
+            
+            renderSummaryCards: function() {
+                const summary = this.data.summary;
+                if (!summary) return;
+
+                const container = document.getElementById("summaryCards");
+                container.innerHTML = [
+                    { title: "Total Count", value: summary.total_donations.toLocaleString('en-IN'), bg: "bg-blue-500" },
+                    { title: "Total Amount", value: this.formatAmount(summary.total_amount), bg: "bg-blue-400" },
+                    { title: "Avg. Donation", value: this.formatAmount(summary.avg_donation), bg: "bg-blue-300" },
+                    { title: "Top Donor", value: `${summary.top_donors[0]?.name || 'N/A'} (${this.formatAmount(summary.top_donors[0]?.amount || 0)})`, bg: "bg-blue-200" }
+                ].map(card => `
+                    <div class="${card.bg} text-white p-4 rounded-lg shadow">
+                        <h3 class="font-bold text-lg">${card.title}</h3>                                        
+                        <p class="text-2xl">${card.value}</p>
+                    </div>
+                `).join("");
+            },
+
+            // Helper function to format amounts
+            formatAmount: function(amount) {
+                return `INR ${amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            },
+
+
+
+            
+            renderDonationsTable: function() {
+                const tableBody = document.getElementById("donationsTable");
+                const start = (this.data.currentPage - 1) * this.data.rowsPerPage;
+                const end = start + this.data.rowsPerPage;
+                const paginatedData = this.data.filteredDonations.slice(start, end);
+                
+                tableBody.innerHTML = paginatedData.length === 0 ? 
+                    `<tr><td colspan="5" class="py-4 text-center">No donations found</td></tr>` :
+                    paginatedData.map(donation => `
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="py-2 px-4">${donation.id}</td>
+                            <td class="py-2 px-4">${donation.name}</td>
+                            <td class="py-2 px-4">${donation.email}</td>
+                            <td class="py-2 px-4 text-green-600 font-bold">₹${donation.amount}</td>
+                            <td class="py-2 px-4">${moment(donation.date).format('DD MMM YYYY, hh:mm A')}</td>
+                        </tr>
+                    `).join("");
+                
+                // Update pagination controls
+                document.getElementById("pageIndicatorDonations").textContent = `Page ${this.data.currentPage}`;
+                document.getElementById("prevPageDonations").disabled = this.data.currentPage === 1;
+                document.getElementById("nextPageDonations").disabled = end >= this.data.filteredDonations.length;
+            },
+            
+            filterDonations: function() {
+                const query = document.getElementById("searchDonations").value.toLowerCase();
+                const dateFrom = document.getElementById("filterDateFrom").value;
+                const dateTo = document.getElementById("filterDateTo").value;
+                
+                this.data.filteredDonations = this.data.donations.filter(d => {
+                    const matchesSearch = query ? 
+                        (d.name.toLowerCase().includes(query) || d.email.toLowerCase().includes(query)) : true;
+                    
+                    let matchesDate = true;
+                    if (dateFrom) matchesDate = matchesDate && d.dateObj >= new Date(dateFrom);
+                    if (dateTo) {
+                        const toDate = new Date(dateTo);
+                        toDate.setHours(23, 59, 59, 999);
+                        matchesDate = matchesDate && d.dateObj <= toDate;
+                    }
+                    
+                    return matchesSearch && matchesDate;
+                });
+                
+                this.data.currentPage = 1;
+                this.renderDonationsTable();
+            },
+            
+            sortDonations: function(sortBy) {
+                this.data.filteredDonations.sort((a, b) => 
+                    sortBy === "date" ? a.dateObj - b.dateObj : a[sortBy] > b[sortBy] ? 1 : -1
+                );
+                this.data.currentPage = 1;
+                this.renderDonationsTable();
+            },
+            
+            prevPage: function() {
+                if (this.data.currentPage > 1) {
+                    this.data.currentPage--;
+                    this.renderDonationsTable();
+                }
+            },
+            
+            nextPage: function() {
+                if (this.data.currentPage * this.data.rowsPerPage < this.data.filteredDonations.length) {
+                    this.data.currentPage++;
+                    this.renderDonationsTable();
+                }
+            }
+        };
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => DonationsApp.init());
+    </script>
+</body>
+</html>

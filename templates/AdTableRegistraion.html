@@ -1,0 +1,91 @@
+<div class="container mx-auto p-6">
+    <h1 class="text-2xl font-bold mb-4">User Registration Trend</h1>
+
+    <div class="bg-white p-4 shadow-md rounded-lg">
+        <!-- Chart Container -->
+        <div class="relative h-64 sm:h-96"> <!-- Responsive height -->
+            <canvas id="registrationChart"></canvas>
+        </div>
+        <p class="text-center mt-2 font-semibold">
+            Avg Growth Rate: <span id="growthRate" class="text-blue-600">Loading...</span>%
+        </p>
+    </div>
+</div>
+
+<script>
+    async function fetchRegistrationData() {
+        try {
+            const response = await fetch("/viewRegistrations");
+            const data = await response.json();
+            const registrations = data.registrations;
+            const avgGrowthRate = data.avg_growth_rate;
+
+            // Format growth rate to 2 decimal places
+            document.getElementById("growthRate").textContent = parseFloat(avgGrowthRate).toFixed(2);
+
+            // Show last 15 days on big screens, last 5 days on mobile
+            const daysToShow = window.innerWidth < 768 ? 5 : 15;
+
+            // If there are fewer days, use all available data
+            const filteredData = registrations.slice(-daysToShow);
+
+            const labels = filteredData.map(item => item.date);
+            const counts = filteredData.map(item => item.count);
+
+            const ctx = document.getElementById("registrationChart").getContext("2d");
+            new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "Registrations",
+                        data: counts,
+                        borderColor: "rgb(75, 192, 192)",
+                        backgroundColor: "rgba(75, 192, 192, 0.2)",
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // Allows the chart to resize dynamically
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    const value = context.raw || 0;
+                                    return `Registrations: ${value}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                autoSkip: true,
+                                maxTicksLimit: 10 // Limit the number of labels on the X-axis
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: (value) => {
+                                    // Format Y-axis labels for better readability
+                                    if (value >= 1000) return `${(value / 1000).toFixed(1)}k`;
+                                    return value;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+        } catch (error) {
+            console.error("Error fetching registration data:", error);
+            document.getElementById("growthRate").textContent = "Error";
+        }
+    }
+
+    fetchRegistrationData();
+</script>

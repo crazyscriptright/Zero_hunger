@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        {% include 'AdSidebar.html' %}
+       
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col">
+            <!-- Navbar -->
+            <nav class="bg-white shadow-md p-4 flex justify-between items-center">
+                <button id="sidebar-toggle" class="md:hidden text-gray-600 text-2xl">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <h2 class="text-xl font-bold pl-4 md:pl-8 lg:pl-16 p-2">Dashboard</h2>
+                <div class="relative">
+                    <button id="profile-btn" class="text-gray-600 text-2xl">
+                        <i class="fa-solid fa-user-circle"></i>
+                    </button>
+                    <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md">
+                        <ul class="py-2 text-sm">
+                            <li class="px-4 py-2 font-semibold" id="profile-username">Loading...</li>
+                            <li><a href="/settings" class="block px-4 py-2 hover:bg-gray-200">Settings</a></li>
+                            <li><a href="#" class="block px-4 py-2 hover:bg-gray-200" onclick="logout()">Logout</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+            
+            
+            <!-- Dashboard Content -->
+            <main class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow-md flex items-center space-x-4">
+                    <i class="fa-solid fa-users text-3xl text-blue-500"></i>
+                    <div>
+                        <p class="text-gray-500">Total Users</p>
+                        <h3 id="userCount" class="text-xl font-bold">Loading...</h3>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md flex items-center space-x-4">
+                    <i class="fa-solid fa-hand-holding-heart text-3xl text-red-500"></i>
+                    <div>
+                        <p class="text-gray-500">Pending Rescues</p>
+                        <h3 id="rescueCount" class="text-xl font-bold">Loading...</h3>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md flex items-center space-x-4">
+                    <i class="fa-solid fa-dollar-sign text-3xl text-green-500"></i>
+                    <div>
+                        <p class="text-gray-500">Total Donations</p>
+                        <h3 id="donationCount" class="text-xl font-bold">Loading...</h3>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md flex items-center space-x-4">
+                    <i class="fa-solid fa-comments text-3xl text-purple-500"></i>
+                    <div>
+                        <p class="text-gray-500">New Feedback</p>
+                        <h3 id="feedbackCount" class="text-xl font-bold">Loading...</h3>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <table class="min-w-full border border-gray-300 mt-6">
+        <thead>
+            <tr class="bg-gray-200">
+                <th class="border px-4 py-2">ID</th>
+                <th class="border px-4 py-2">Username</th>
+                <th class="border px-4 py-2">Email</th>
+                <th class="border px-4 py-2">Phone Number</th>
+            </tr>
+        </thead>
+        <tbody id="userTableBody">
+            <!-- JavaScript will insert rows here -->
+        </tbody>
+    </table>
+    
+    
+
+    <script>
+        // Fetch live data
+        async function fetchDashboardData() {
+            try {
+                const responses = await Promise.all([
+                    fetch("/users/count"),
+                    fetch("/donations/count"),
+                    fetch("/rescues/pending"),
+                    fetch("/feedback/count")
+                ]);
+
+                const [userData, donationData, rescueData, feedbackData] = await Promise.all(responses.map(res => res.json()));
+
+                document.getElementById("userCount").textContent = userData.user_count;
+                document.getElementById("donationCount").textContent = `$${donationData.total_amount.toLocaleString()}`;
+                document.getElementById("rescueCount").textContent = rescueData.pending_rescues;
+                document.getElementById("feedbackCount").textContent = feedbackData.new_feedback;
+            } catch (error) {
+                console.error("Error fetching dashboard data:", error);
+            }
+        }
+
+        fetchDashboardData();
+        setInterval(fetchDashboardData, 5000); // Auto-update every 5 seconds
+
+        // Sidebar Toggle
+        const sidebar = document.getElementById("sidebar");
+        const toggleButton = document.getElementById("sidebar-toggle");
+        toggleButton.addEventListener("click", () => {
+            sidebar.classList.toggle("-translate-x-full");
+        });
+
+        // Profile Dropdown Toggle
+        const profileButton = document.getElementById("profile-btn");
+        const profileDropdown = document.getElementById("profile-dropdown");
+        profileButton.addEventListener("click", () => {
+            profileDropdown.classList.toggle("hidden");
+        });
+
+        // Fetch User Profile
+        async function fetchUserProfile() {
+            try {
+                const response = await fetch("/profile");
+                const data = await response.json();
+                document.getElementById("profile-username").textContent = data.username;
+            } catch (error) {
+                console.error("Error fetching user profile:", error);
+            }
+        }
+        fetchUserProfile();
+
+        // Logout Function
+        function logout() {
+            localStorage.removeItem("token");
+            window.location.href = "/login";
+        }
+
+//         async function fetchUserDetails() {
+//     try {
+//         const response = await fetch("/users");
+//         const users = await response.json();
+        
+//         console.log("Fetched Users:", users);  // Debugging log
+
+//         const userTableBody = document.getElementById("userTableBody");
+//         userTableBody.innerHTML = ""; // Clear old data before inserting new ones
+
+//         users.forEach(user => {
+//             const row = document.createElement("tr");
+//             row.innerHTML = `
+//                 <td class="border px-4 py-2">${user.id}</td>
+//                 <td class="border px-4 py-2">${user.username}</td>
+//                 <td class="border px-4 py-2">${user.email}</td>
+//                 <td class="border px-4 py-2">${user.phone_number}</td>
+//             `;
+//             userTableBody.appendChild(row);
+//         });
+
+//     } catch (error) {
+//         console.error("Error fetching user details:", error);
+//     }
+// }
+
+// // Call the function once, then auto-refresh every 5 seconds
+// fetchUserDetails();
+// setInterval(fetchUserDetails, 5000);
+
+
+document.addEventListener("DOMContentLoaded", async function () {
+    try {
+        const response = await fetch("/users"); // Fetch user data
+        const users = await response.json(); // Convert to JSON
+
+        const tableBody = document.getElementById("userTableBody");
+        if (!tableBody) {
+            console.error("Table body not found!");
+            return;
+        }
+
+        tableBody.innerHTML = ""; // Clear previous data
+        users.forEach(user => {
+            const row = `<tr>
+                <td class="border px-4 py-2">${user.id}</td>
+                <td class="border px-4 py-2">${user.username}</td>
+                <td class="border px-4 py-2">${user.email}</td>
+                <td class="border px-4 py-2">${user.phone_number}</td>
+            </tr>`;
+            tableBody.innerHTML += row;
+        });
+
+    } catch (error) {
+        console.error("Error fetching user data:", error);
+    }
+});
+
+
+// async function fetchUserDetails() {
+//     try {
+//         const response = await fetch("/users"); // Fetch users from API
+//         const users = await response.json(); // Convert response to JSON
+        
+//         console.log("Fetched Users:", users);  // Log fetched users
+
+//         const userTableBody = document.getElementById("userTableBody");
+//         if (!userTableBody) {
+//             console.error("Table body not found!");
+//             return;
+//         }
+
+//         userTableBody.innerHTML = ""; // Clear existing rows
+
+//         users.forEach(user => {
+//             console.log("Adding user:", user); // Log each user
+
+//             const row = document.createElement("tr");
+//             row.innerHTML = `
+//                 <td class="border px-4 py-2">${user.id}</td>
+//                 <td class="border px-4 py-2">${user.username}</td>
+//                 <td class="border px-4 py-2">${user.email}</td>
+//                 <td class="border px-4 py-2">${user.phone_number}</td>
+//             `;
+//             userTableBody.appendChild(row); // Append row to table
+//         });
+
+//     } catch (error) {
+//         console.error("Error fetching user details:", error);
+//     }
+// }
+
+// // Run function on page load and update every 5 sec
+// document.addEventListener("DOMContentLoaded", () => {
+//     fetchUserDetails();
+//     setInterval(fetchUserDetails, 5000);
+// });
+
+    </script>
+</body>
+</html>

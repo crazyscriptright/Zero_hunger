@@ -1,0 +1,183 @@
+<div class="container mx-auto p-6 bg-gradient-to-b from-gray-50 to-gray-200 ">
+    <!-- Hero Section with Image and Description -->
+    <div class="flex flex-col md:flex-row items-center justify-center gap-8 mb-12">
+        <!-- Image -->
+        <div class="w-full md:w-1/2 animate-fade-in">
+            <img src="/static/dog_rescue.jpg" 
+             alt="Rescue Dog" 
+             class="w-full h-64 md:h-96 object-cover rounded-lg shadow-lg hover:shadow-xl transition-transform duration-300 transform hover:scale-105">
+        </div>
+
+        <!-- Description -->
+        <div class="w-full md:w-1/2 space-y-4 animate-fade-in">
+            <h1 class="text-4xl font-bold text-gray-800">Help Rescue a Dog 🐾</h1>
+            <p class="text-gray-600 text-lg">
+                Every dog deserves a second chance. If you've found a dog in need of rescue, please provide the details below. 
+                Your help can save a life and bring joy to a furry friend in need.
+            </p>
+            <p class="text-gray-600 text-lg">
+                Together, we can make a difference. Let's give these dogs the love and care they deserve!
+            </p>
+                        <!-- Add Rescue Button -->
+        <div class="flex justify-left animate-bounce mr-8 mt-8">
+            <button onclick="handleAddRescueClick()" class="bg-yellow-600 text-white px-8 py-3 rounded-lg hover:bg-yellow-700 hover:scale-105 transition-all duration-300 transform hover:shadow-lg">
+            + Add Rescue Details
+            </button>
+        </div>
+        </div>
+    </div>
+</div>
+
+<!-- Rescue Modal -->
+<div id="rescueModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
+    <div class="bg-white p-8 rounded-lg w-full max-w-md transform transition-transform scale-95 hover:scale-100 duration-300 animate-fade-in">
+        <h2 class="text-2xl font-bold mb-6 text-center animate-pulse">🐾 Add Rescue Details</h2>
+
+        <form id="rescueForm" class="space-y-6">
+            <!-- Rescue Location -->
+            <input type="text" id="rescueLocation" placeholder="Rescue Location" class="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300 hover:border-blue-400" required>
+
+            <!-- Condition of Dog -->
+            <textarea id="conditionOfDog" placeholder="Condition of Dog (Injured, Sick, etc.)" class="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300 hover:border-blue-400" required></textarea>
+
+            <!-- Dog Image (Base64) -->
+            <div class="relative">
+                <input type="file" id="dogImage" accept="image/*" class="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300 hover:border-blue-400" onchange="previewRescueImage(event)">
+                <div id="rescueImagePreview" class="mt-2 hidden">
+                    <img id="rescuePreview" class="w-24 h-24 object-cover rounded-lg border">
+                </div>
+            </div>
+
+            <!-- Rescue Status (Hidden, default is 'Pending') -->
+            <input type="hidden" id="rescueStatus" value="Pending">
+
+            <!-- Contact Info -->
+            <input type="text" id="contactInfo" placeholder="Your Contact Info (Phone/Email)" class="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300 hover:border-blue-400" required>
+
+            <!-- Additional Notes -->
+            <textarea id="additionalNotes" placeholder="Additional Notes" class="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300 hover:border-blue-400"></textarea>
+
+            <!-- Buttons -->
+            <button type="button" onclick="submitRescue()" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
+                Submit Details
+            </button>
+            <button type="button" onclick="closeRescueModal()" class="text-gray-500 w-full text-center mt-4 hover:text-gray-700 transition-all duration-300">
+                Cancel
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Check if user is logged in
+    function handleAddRescueClick() {
+        const storedUsername = sessionStorage.getItem("username");
+        if (!storedUsername) {
+            window.location.href = "/login";
+        } else {
+            openRescueModal();
+        }
+    }
+
+    // Open Rescue Modal
+    function openRescueModal() {
+        document.getElementById("rescueModal").classList.remove("hidden");
+    }
+
+    // Close Rescue Modal
+    function closeRescueModal() {
+        document.getElementById("rescueModal").classList.add("hidden");
+    }
+
+    // Preview Rescue Image
+    function previewRescueImage(event) {
+        const input = event.target;
+        const preview = document.getElementById("rescuePreview");
+        const imagePreview = document.getElementById("rescueImagePreview");
+
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                preview.src = e.target.result; // Set the preview image source
+                imagePreview.classList.remove("hidden");
+            };
+            reader.readAsDataURL(input.files[0]); // Read the file as a data URL
+        }
+    }
+
+    // Submit Rescue Details
+    async function submitRescue() {
+        const rescueLocation = document.getElementById("rescueLocation").value;
+        const conditionOfDog = document.getElementById("conditionOfDog").value;
+        const dogImage = document.getElementById("dogImage").files[0];
+        const contactInfo = document.getElementById("contactInfo").value;
+        const additionalNotes = document.getElementById("additionalNotes").value;
+
+        // Convert image to Base64 with the correct data: prefix
+        let dogImageBase64 = null;
+        if (dogImage) {
+            dogImageBase64 = await convertImageToBase64(dogImage);
+        }
+
+        const response = await fetch("/add-rescue", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                rescue_location: rescueLocation,
+                condition_of_dog: conditionOfDog,
+                dog_image_base64: dogImageBase64,
+                contact_info: contactInfo,
+                additional_notes: additionalNotes
+            })
+        });
+
+        const data = await response.json();
+        alert(data.message);
+        closeRescueModal();
+        document.getElementById("rescueForm").reset();
+        document.getElementById("rescueImagePreview").classList.add("hidden");
+    }
+
+    // Convert Image to Base64 with Correct Prefix
+    function convertImageToBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                // The result includes the correct data: prefix (e.g., data:image/png;base64,...)
+                resolve(reader.result);
+            };
+            reader.onerror = (error) => reject(error);
+            reader.readAsDataURL(file); // Automatically includes the correct prefix
+        });
+    }
+</script>
+
+<style>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+
+    .animate-fade-in {
+        animation: fadeIn 0.8s ease-in-out;
+    }
+
+    .animate-bounce {
+        animation: bounce 1.5s infinite;
+    }
+
+    .animate-pulse {
+        animation: pulse 2s infinite;
+    }
+</style>
+

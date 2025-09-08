@@ -1,0 +1,15 @@
+# Ignore virtual environment folders
+venv/
+env/
+information.txt
+static.zip
+uvi
+".env copy"
+.env
+
+# Ignore Python cache files
+__pycache__/
+*.py[cod]
+
+# Ignore SQL files
+*.sql

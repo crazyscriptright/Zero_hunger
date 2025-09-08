@@ -1,0 +1,188 @@
+<div class="container mx-auto p-6">
+    <h1 class="text-3xl font-bold text-left mb-8">Dog List 🐾</h1>
+
+
+    <!-- Swiper Section -->
+    <div class="swiper mySwiper">
+        <div id="dogsContainer" class="swiper-wrapper"></div>
+    </div>
+
+    <!-- View All and Add Dog Buttons -->
+    <div class="flex justify-between items-center mt-8">
+        <a href="/Admin/all-dogs" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 hover:scale-105 transition-all duration-300">View All</a>
+        <button onclick="openModal()" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 hover:scale-105 transition-all duration-300">+ Add Dog</button>
+    </div>
+</div>
+
+<!-- Add Dog Modal -->
+<div id="addDogModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 hidden z-50">
+    <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md transform transition-transform hover:scale-105 duration-300">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">Add Dog Details 🐶</h1>
+
+        <form id="dogForm" class="space-y-6">
+            <input type="text" id="name" placeholder="Dog Name" class="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-300 hover:shadow-md" required>
+            
+            <select id="sex" class="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-300 hover:shadow-md" required>
+                <option value="" disabled selected>Select Sex</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+            </select>
+            <input type="number" id="age" placeholder="Age" class="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-300 hover:shadow-md" required>
+            <input type="file" id="image" class="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-300 hover:shadow-md" accept="image/*">
+
+            <button type="button" onclick="submitDog()" class="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-indigo-500 hover:to-blue-500 text-white py-3 rounded-md shadow-md transition duration-300">Add Dog</button>
+            <button type="button" onclick="closeModal()" class="text-gray-600 w-full mt-4">Cancel</button>
+        </form>
+    </div>
+</div>
+
+<!-- Adoption Modal -->
+<div id="adoptionModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 hidden z-50">
+    <div class="bg-white p-6 rounded-lg w-96">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-4">🐶 Adopt Dog</h2>
+        <input type="email" id="emailInput" placeholder="Enter your email" class="w-full p-2 mb-4 border rounded-lg focus:outline-none" />
+        <button onclick="confirmAdoption()" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">Confirm Adoption</button>
+        <button onclick="closeAdoptionModal()" class="mt-4 text-gray-500">Cancel</button>
+    </div>
+</div>
+
+<!-- Swiper CSS CDN -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+<script>
+    let allDogs = [];
+    let selectedDogId = null;
+    let swiper;
+
+    async function fetchDogs() {
+        const response = await fetch("/dogs"); 
+        const data = await response.json();
+        allDogs = data.dogs;
+        renderDogs(allDogs.slice(0, 8)); // Only display the first 8 dogs
+    }
+
+    function renderDogs(dogs) {
+        const container = document.getElementById("dogsContainer");
+        container.innerHTML = "";
+
+        dogs.forEach(dog => {
+            const dogCard = `
+                <div class="swiper-slide bg-white shadow-md rounded-lg p-4 text-center hover:scale-105 transition-all duration-300">
+                    <div class="w-full h-40 rounded-lg overflow-hidden">
+                        <img src="${dog.image}" class="w-full h-full object-cover hover:scale-110 transition-all duration-300" />
+                    </div>
+                    <h2 class="text-lg font-semibold mt-4">${dog.name_of_dog}</h2>
+                    <p class="text-gray-600 mb-4">${dog.sex} | ${dog.age} years</p>
+                </div>
+            `;
+            container.innerHTML += dogCard;
+        });
+
+        // Initialize or update Swiper
+        if (swiper) {
+            swiper.destroy(); // Destroy existing Swiper instance
+        }
+        swiper = new Swiper('.mySwiper', {
+            slidesPerView: 1,
+            spaceBetween: 20,
+            loop: true,
+            autoplay: {
+                delay: 3000,
+                disableOnInteraction: false,
+            },
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+            },
+            breakpoints: {
+                640: {
+                    slidesPerView: 2,
+                },
+                768: {
+                    slidesPerView: 3,
+                },
+                1024: {
+                    slidesPerView: 4,
+                },
+            },
+        });
+    }
+
+    function filterDogs() {
+        const searchQuery = document.getElementById("searchInput").value.toLowerCase();
+        const ageFilter = document.getElementById("ageFilter").value;
+
+        const filteredDogs = allDogs.filter(dog => {
+            const matchesSearch = dog.name_of_dog.toLowerCase().includes(searchQuery);
+            const matchesAge = ageFilter === "all" || (ageFilter === "3" ? dog.age >= 3 : dog.age == ageFilter);
+            return matchesSearch && matchesAge;
+        });
+
+        renderDogs(filteredDogs.slice(0, 8)); // Only display the first 8 filtered dogs
+    }
+
+    function openModal() {
+        document.getElementById("addDogModal").classList.remove("hidden");
+        document.body.classList.add("overflow-hidden"); 
+    }
+
+    function closeModal() {
+        document.getElementById("addDogModal").classList.add("hidden");
+        document.body.classList.remove("overflow-hidden");
+    }
+
+    async function submitDog() {
+        const name = document.getElementById("name").value;
+        const sex = document.getElementById("sex").value;
+        const age = document.getElementById("age").value;
+        const imageInput = document.getElementById("image");
+
+        let base64Image = null;
+
+        if (imageInput.files.length > 0) {
+            const file = imageInput.files[0];
+            const reader = new FileReader();
+            reader.onloadend = async function() {
+                base64Image = reader.result; 
+                await sendDogData(name, sex, age, base64Image);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            await sendDogData(name, sex, age, null);
+        }
+    }
+
+    async function sendDogData(name, sex, age, base64Image) {
+        await fetch("/dogs/add", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                name_of_dog: name,
+                sex: sex,
+                age: age,
+                image: base64Image
+            })
+        });
+        closeModal();
+        fetchDogs();
+    }
+
+    function openAdoptionModal(dogId) {
+        selectedDogId = dogId;
+        document.getElementById("adoptionModal").classList.remove("hidden");
+    }
+
+    async function confirmAdoption() {
+        const email = document.getElementById("emailInput").value;
+        await fetch(`/adopt-dog/${selectedDogId}?email=${email}`, { method: "POST" });
+        closeAdoptionModal();
+        fetchDogs();
+    }
+
+    function closeAdoptionModal() {
+        document.getElementById("adoptionModal").classList.add("hidden");
+    }
+
+    fetchDogs();
+</script>

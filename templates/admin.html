@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col" id="home">
+    
+    <!-- Sidebar (included template) -->
+    {% include 'AdSidebar.html' %}
+
+    <!-- Header -->
+    <header class="bg-white text-black p-4 flex justify-between items-center shadow-md fixed top-0 left-0 w-full z-40">
+        <h1 class="text-xl md:text-2xl font-bold flex items-center">
+            <i class="pl-4 md:pl-8 mr-8 p-1"></i>
+            Admin Dashboard
+        </h1>
+        <div class="relative">
+            <button id="profile-btn" class="focus:outline-none flex items-center">
+                <i class="fa-solid fa-user-circle text-2xl md:text-3xl"></i>
+            </button>
+            <!-- Profile Dropdown -->
+            <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-40 md:w-44 bg-white rounded-md shadow-lg z-50">
+                <ul class="py-2 text-gray-700 text-sm">
+                    <li class="px-4 py-2 font-semibold" id="profile-username">Loading...</li>
+                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-100" onclick="logout()">Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Dashboard Content -->
+    <div class="flex-1 flex flex-col items-center pt-8 pb-4 px-4 md:pt-6 md:px-6 mt-[4.25rem]">
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full max-w-6xl">
+            <!-- Total Users -->
+            <div class="bg-white p-4 md:p-6 rounded-lg shadow-md flex items-center space-x-4">
+                <i class="fa-solid fa-users text-2xl md:text-3xl text-blue-500"></i>
+                <div>
+                    <p class="text-gray-500">Total Users</p>
+                    <h3 id="userCount" class="text-lg md:text-xl font-bold">Loading...</h3>
+                </div>
+            </div>
+            <!-- Pending Rescues -->
+            <div class="bg-white p-4 md:p-6 rounded-lg shadow-md flex items-center space-x-4">
+                <i class="fa-solid fa-hand-holding-heart text-2xl md:text-3xl text-red-500"></i>
+                <div>
+                    <p class="text-gray-500">Total Resued Dogs</p>
+                    <h3 id="rescueCount" class="text-lg md:text-xl font-bold">Loading...</h3>
+                </div>
+            </div>
+            <!-- Total Donations -->
+            <div class="bg-white p-4 md:p-6 rounded-lg shadow-md flex items-center space-x-4">
+                <i class="fa-solid fa-indian-rupee text-2xl md:text-3xl text-green-500"></i>
+                <div>
+                    <p class="text-gray-500">Total Donations</p>
+                    <h3 id="donationCount" class="text-lg md:text-xl font-bold">Loading...</h3>
+                </div>
+            </div>
+            <!-- Feedback -->
+            <div class="bg-white p-4 md:p-6 rounded-lg shadow-md flex items-center space-x-4">
+                <i class="fa-solid fa-comments text-2xl md:text-3xl text-purple-500"></i>
+                <div>
+                    <p class="text-gray-500">Total Feedback</p>
+                    <h3 id="feedbackCount" class="text-lg md:text-xl font-bold">Loading...</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Registration chart -->
+    <div id="analytics" class="z-30"> 
+        {% include 'AdTableRegistraion.html' %}
+    </div>
+    
+    <div id="rescue" class="z-20">
+        {% include 'AdResueTable.html' %}
+    </div>
+    <!-- Donations Section -->
+    <div id="donation" class="z-20">
+        {% include 'AdDonations.html' %}
+    </div>
+    <div>
+        
+    </div>
+    <!-- Feedback Section -->
+    <div id="feedback" class="z-20">
+        {% include 'AdFeedback.html' %}
+    </div>
+    <div id="spending" class="z-20">
+        {% include 'AdDonation_tracker.html' %}
+    </div>
+    <div class="z-20">
+        {% include 'AdDonationSpendingTable.html' %}
+    </div>
+    <div class="z-20">
+        {% include 'AdDogsAdd.html' %}
+    </div>
+    <div class="z-20">
+        {% include 'AdApproveDog.html' %}
+    </div>
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white text-center p-4 mt-auto text-sm md:text-base">
+        &copy; 2025 Zero Hunger for Stray Dogs - Admin Panel
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        async function fetchDashboardData() {
+            try {
+                const userResponse = await fetch("/users/count");
+                const userData = await userResponse.json();
+                document.getElementById("userCount").textContent = userData.user_count;
+
+                const rescueResponse = await fetch("/rescues/Escalated/count");
+                const rescueData = await rescueResponse.json();
+                document.getElementById("rescueCount").textContent = rescueData.pending_rescues;
+
+                const donationResponse = await fetch("/donations/count");
+                const donationData = await donationResponse.json();
+                document.getElementById("donationCount").textContent = donationData.total_amount;
+
+                const feedbackResponse = await fetch("/feedback/count");
+                const feedbackData = await feedbackResponse.json();
+                document.getElementById("feedbackCount").textContent = feedbackData.count;
+
+            } catch (error) {
+                document.getElementById("userCount").textContent = "Error";
+                document.getElementById("rescueCount").textContent = "Error";
+                document.getElementById("donationCount").textContent = "Error";
+                document.getElementById("feedbackCount").textContent = "Error";
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        fetchDashboardData();
+
+        // Profile dropdown toggle
+        document.getElementById("profile-btn").addEventListener("click", () => {
+            document.getElementById("profile-dropdown").classList.toggle("hidden");
+        });
+
+        // Logout function
+        window.logout = function () {
+            sessionStorage.removeItem("username"); // Clear session data
+            window.location.href = "/"; // Redirect to home
+        };
+
+        document.addEventListener("DOMContentLoaded", function () {
+            // Function to check if user is admin
+            function checkAdminAccess() {
+                const storedUsername = sessionStorage.getItem("username");
+
+                // If no username or not 'admin', redirect to login
+                if (!storedUsername || storedUsername.toLowerCase() !== "admin") {
+                    alert("Access denied. Admins only.");
+                    window.location.href = "/login"; // Redirect to login
+                }
+            }
+
+            // Function to load admin UI after validation
+            function loadAdminUI() {
+                const storedUsername = sessionStorage.getItem("username");
+
+                // Update UI elements
+                const profileUsername = document.getElementById("profile-username");
+                const profileSection = document.getElementById("profile-section");
+                const signInSection = document.getElementById("sign-in-section");
+
+                if (profileUsername) {
+                    profileUsername.textContent = `Hello! ${storedUsername.charAt(0).toUpperCase()}${storedUsername.slice(1)}`;
+                }
+
+                if (profileSection) {
+                    profileSection.classList.remove("hidden"); // Show profile section
+                }
+
+                if (signInSection) {
+                    signInSection.classList.add("hidden"); // Hide sign-in button
+                }
+            }
+
+            checkAdminAccess(); // Redirects if not admin
+            loadAdminUI(); // Load UI only if admin
+        });
+    </script>
+</body>
+</html>
